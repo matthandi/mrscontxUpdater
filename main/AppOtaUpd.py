@@ -59,10 +59,13 @@ class CAppOtaUpd:
         """
         retrieve the latest release version from github.com
         """
-        latest_release = urequests.get(self.github_repo + '/releases/latest',headers=self.user_agent)
-        version = latest_release.json()['tag_name']
-        latest_release.close()
-        return version
+        try:
+            latest_release = urequests.get(self.github_repo + '/releases/latest',headers=self.user_agent)
+            version = latest_release.json()['tag_name']
+            latest_release.close()
+            return version
+        except:
+            return "[E] reading latest version"
 
     def rmtree(self, directory):
         """
@@ -164,3 +167,9 @@ class CAppOtaUpd:
         else:
             print("no update available to install")
             return False
+
+if __name__ == "__main__":
+    o = CAppOtaUpd("https://github.com/matthandi/mrscontxUpdater")
+    print(o.get_version(o.modulepath(o.main_dir)))
+    print(o.get_latest_release_version())
+    o.download_updates_if_available()

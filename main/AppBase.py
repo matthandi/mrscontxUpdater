@@ -1,11 +1,12 @@
 import sys
-sys.path.append('./main')
+sys.path.append('/main')
 import machine
 import time
 import ubinascii
 import ujson
 import umqtt.simple
 import AppOtaUpd
+import network
 
 class CAppBase:
     """
@@ -22,7 +23,7 @@ class CAppBase:
     D7 = 13
     # A0 = ?
 
-    def __init__(self,device = "",github_repo="https://api.github.com/repos/matthandi/mrscontxUpdater"):
+    def __init__(self,device = "",github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
         constructor
         """
@@ -40,7 +41,7 @@ class CAppBase:
         self.subscribe_cmnd_repoversion_msg = self.topic + b"/" + self.bdevice + b"/cmnd/repoversion"
         self.subscribe_cmnd_download_msg = self.topic + b"/" + self.bdevice + b"/cmnd/download"
         self.subscribe_cmnd_install_msg = self.topic + b"/" + self.bdevice + b"/cmnd/install"
-
+        self.subscribe_cmnd_setdevice_msg = self.topic + b"/" + self.bdevice + b"/cmnd/setdevice"
         # mqtt publishing
         self.topic_version_msg      = self.topic + b"/" + self.bdevice + b"/version"
         self.topic_repo_version_msg = self.topic + b"/" + self.bdevice + b"/repoversion"
@@ -54,6 +55,14 @@ class CAppBase:
         self.ssid_wlan = self.ssid_data['SSIDS'][0]['ssid']
         self.key_wlan = self.ssid_data['SSIDS'][0]['key']
         self.mqtt_server = self.ssid_data['SSIDS'][0]['mqttbroker']
+
+    def set_devicename(self,new_device_name):
+        """
+        sets a new device name (e.g. for debugging / testing)
+        """
+        self.device = new_device_name
+        self.bdevice = bytes(new_device_name,'utf-8')
+        self.client_id = "contX" + new_device_name
 
     def mqtt_subscribe_cb(self,topic,payload):
         """
@@ -78,6 +87,10 @@ class CAppBase:
         if topic == self.subscribe_cmnd_install_msg:
             # request download
             self.request_install_files()
+
+        # request for setting new device name
+        if topic == self.subscribe_cmnd_setdevice_msg:
+            self.set_devicename(payload.decode("utf-8"))
 
     def request_download(self):
         """
@@ -143,6 +156,13 @@ class CAppBase:
         self.mqtt_client.publish(self.topic_error_msg,b'[E] ' + bytes(msg,'utf-8'))
 
     def connect_mqtt(self):
+        station = network.WLAN(network.STA_IF)
+        station.active(True)
+        station.connect(self.ssid_wlan, self.key_wlan)
+        print("trying to connect...")
+        while station.isconnected() == False:
+            pass
+ 
         self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server)
         self.set_subscribe_cb(self.mqtt_subscribe_cb)
         self.mqtt_client.connect()
