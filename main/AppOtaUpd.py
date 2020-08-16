@@ -173,3 +173,5 @@ if __name__ == "__main__":
     print(o.get_version(o.modulepath(o.main_dir)))
     print(o.get_latest_release_version())
     o.download_updates_if_available()
+    o.install_files()
+    
