@@ -32,7 +32,7 @@ class CAppSwitch(AppBase.CAppBase):
         self.btn = machine.Pin(self.btn_pin, machine.Pin.IN)
 
     def publish_switch_state(self):
-        self.mqtt_client.publish(self.topic_state_msg,self.last_state)
+        self.mqtt_client.publish(self.topic_state_msg,bytes(str(self.last_state),"utf-8"))
 
     def check_switch(self):
         """
