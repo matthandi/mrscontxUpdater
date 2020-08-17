@@ -97,14 +97,18 @@ class CAppBase:
         requests download of new App SW if available
         """
         o = AppOtaUpd.CAppOtaUpd(self.github_repo)
-        o.download_updates_if_available()
+        if o.download_updates_if_available() == True:
+            self.publish_info_message("update successfully downloaded")
+        else:
+            self.publish_info_message("no update available")
 
     def request_install_files(self):
         """
         request for installation of downloaded files
         """
         o = AppOtaUpd.CAppOtaUpd(self.github_repo)
-        o.install_files()        
+        if o.install_files() == False:
+            self.publish_error_message("Installation of files failed")        
 
     def mqtt_subscribe_to_msg(self,msg):
         """
