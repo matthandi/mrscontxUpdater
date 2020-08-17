@@ -118,13 +118,27 @@ def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_
     
     # test request download
     mock_umqtt.reset_mock()
+    mock_download_updates_if_available.return_value = True
     ab.mqtt_subscribe_cb(b"contX/base/cmnd/download",b"")
     mock_download_updates_if_available.assert_called()
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/info',b"[I] update successfully downloaded")
+    mock_umqtt.reset_mock()
+    mock_download_updates_if_available.return_value = False
+    ab.mqtt_subscribe_cb(b"contX/base/cmnd/download",b"")
+    mock_download_updates_if_available.assert_called()
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/info',b"[I] no update available")
 
     # test request install
     mock_umqtt.reset_mock()
+    mock_install_files.return_value = True
     ab.mqtt_subscribe_cb(b"contX/base/cmnd/install",b"")
     mock_install_files.assert_called()
+    mock_umqtt.return_value.publish.assert_not_called()
+    mock_umqtt.reset_mock()
+    mock_install_files.return_value = False
+    ab.mqtt_subscribe_cb(b"contX/base/cmnd/install",b"")
+    mock_install_files.assert_called()
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/error',b"[E] Installation of files failed")
 
     # test request set device
     mock_umqtt.reset_mock()
