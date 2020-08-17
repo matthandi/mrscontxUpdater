@@ -7,6 +7,7 @@ import network
 import time
 import os
 import gc
+import machine
 
 class CAppOtaUpd:
     """
@@ -161,7 +162,7 @@ class CAppOtaUpd:
                 print("Error: unable to rename next -> main_dir")
                 return False
             #reboot :)
-            #machine.reset()
+            machine.reset()
             return True
 
         else:
