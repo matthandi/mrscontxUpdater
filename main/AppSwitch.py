@@ -32,13 +32,13 @@ class CAppSwitch(AppBase.CAppBase):
         self.btn = machine.Pin(self.btn_pin, machine.Pin.IN)
 
     def publish_switch_state(self):
-        self.mqtt_client.publish(self.topic_state_msg,str(self.last_state))
+        self.mqtt_client.publish(self.topic_state_msg,self.last_state)
 
     def check_switch(self):
         """
         checks the button state - and sends message on change
         """
-        act_state = not self.btn.value()
+        act_state = self.btn.value()
         # state changed
         if self.last_state != act_state:
             self.last_state = act_state
