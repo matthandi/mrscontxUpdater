@@ -11,7 +11,7 @@ class CAppLed(AppBase.CAppBase):
     inherited class for a led application
     """
 
-    def __init__(self, device='led',led_pin = AppBase.CAppBase.D4,github_repo="https://github.com/matthandi/mrscontxUpdater"):
+    def __init__(self, device='led',led_pin = AppBase.CAppBase.GPIO4,github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
         constructor
         """
