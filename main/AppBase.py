@@ -5,23 +5,32 @@ import time
 import ubinascii
 import ujson
 import umqtt.simple
-import AppOtaUpd
 import network
+import gc
+import AppOtaUpd
 
 class CAppBase:
     """
     Base class for all other applications
     """
-    # constants for PinOut-Map of ESP8266
-    D0 = 16
-    D1 = 5
-    D2 = 4
-    D3 = 0
-    D4 = 2
-    D5 = 14
-    D6 = 12
-    D7 = 13
-    # A0 = ?
+    # constants for PinOut-Map of ESP32
+    GPIO2  = 2  # internal led - used for alive signal
+    
+    # digital input / output with pullups
+    GPIO4  = 4
+    GPIO16 = 16
+    GPIO17 = 17
+    GPIO25 = 25
+    GPIO26 = 26
+    GPIO27 = 27
+    GPIO32 = 32
+    GPIO33 = 33
+
+    # digital input only (possible ADC channels)
+    GPIO34 = 34
+    GPIO35 = 35
+    GPIO36 = 36
+    GPIO39 = 39
 
     def __init__(self,device = "",github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
@@ -42,13 +51,31 @@ class CAppBase:
         self.subscribe_cmnd_download_msg = self.topic + b"/" + self.bdevice + b"/cmnd/download"
         self.subscribe_cmnd_install_msg = self.topic + b"/" + self.bdevice + b"/cmnd/install"
         self.subscribe_cmnd_setdevice_msg = self.topic + b"/" + self.bdevice + b"/cmnd/setdevice"
+        self.subscribe_cmnd_mem_free_msg = self.topic + b"/" + self.bdevice + b"/cmnd/memfree"
         # mqtt publishing
         self.topic_version_msg      = self.topic + b"/" + self.bdevice + b"/version"
         self.topic_repo_version_msg = self.topic + b"/" + self.bdevice + b"/repoversion"
+        self.topic_mem_free_msg     = self.topic + b"/" + self.bdevice + b"/memfree"
         self.topic_info_msg         = self.topic + b"/" + self.bdevice + b"/info"
         self.topic_warning_msg      = self.topic + b"/" + self.bdevice + b"/warning"
         self.topic_error_msg        = self.topic + b"/" + self.bdevice + b"/error"
-    
+
+    def toggle_alive_led(self):
+        """
+        toggles internal led as alive led
+        """
+        self.alive_led_state = not self.alive_led_state
+        self.alive_led.value(self.alive_led_state)
+
+    def init_alive_led(self):
+        """
+        inits the alive led
+        """
+        self.alive_led_state = False
+        self.alive_led = machine.Pin(CAppBase.GPIO2, machine.Pin.OUT)
+        self.alive_timer = machine.Timer(1)
+        self.alive_timer.init(period=1000,mode=machine.Timer.PERIODIC, callback=lambda t:self.toggle_alive_led())
+
     def read_configfile(self):
         with open('ssid.json') as f:
             self.ssid_data = ujson.load(f)
@@ -92,6 +119,13 @@ class CAppBase:
         if topic == self.subscribe_cmnd_setdevice_msg:
             self.set_devicename(payload.decode("utf-8"))
 
+        # request mem free
+        if topic == self.subscribe_cmnd_mem_free_msg:
+            gc.collect()
+            msg = "Free mem " + str(gc.mem_free()) + " Bytes, allocated "
+            msg = msg + str(gc.mem_alloc()) + " Bytes"
+            self.publish_info_message(msg)
+
     def request_download(self):
         """
         requests download of new App SW if available
@@ -101,6 +135,7 @@ class CAppBase:
             self.publish_info_message("update successfully downloaded")
         else:
             self.publish_info_message("no update available")
+        gc.collect()
 
     def request_install_files(self):
         """
@@ -108,7 +143,8 @@ class CAppBase:
         """
         o = AppOtaUpd.CAppOtaUpd(self.github_repo)
         if o.install_files() == False:
-            self.publish_error_message("Installation of files failed")        
+            self.publish_error_message("Installation of files failed")
+        gc.collect()
 
     def mqtt_subscribe_to_msg(self,msg):
         """
@@ -163,13 +199,14 @@ class CAppBase:
         station = network.WLAN(network.STA_IF)
         station.active(True)
         station.connect(self.ssid_wlan, self.key_wlan)
-        print("trying to connect...")
+        print("connecting to wlan...")
         while station.isconnected() == False:
-            pass
+            self.toggle_alive_led()
  
         self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server)
         self.set_subscribe_cb(self.mqtt_subscribe_cb)
         self.mqtt_client.connect()
+        time.sleep(0.1)
 
     def set_subscribe_cb(self,cb):
         """
@@ -188,6 +225,7 @@ class CAppBase:
         """
         call this function to begin
         """
+        self.init_alive_led()
         self.read_configfile()
         self.connect_mqtt()
         self.mqtt_publish_version()
@@ -195,6 +233,7 @@ class CAppBase:
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_repoversion_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_download_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_install_msg)
+        self.mqtt_subscribe_to_msg(self.subscribe_cmnd_mem_free_msg)
 
 
 def main():   
