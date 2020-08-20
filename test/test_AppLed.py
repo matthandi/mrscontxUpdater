@@ -27,7 +27,7 @@ def test_appled():
     assert ab.subscribe_cmnd_version_msg == b'contX/led/cmnd/version'
     assert ab.topic_cmnd_set_msg == b'contX/led/cmnd/set'
     assert ab.topic_cmnd_state_msg == b'contX/led/cmnd/state'
-    assert ab.led_pin == AppLed.CAppLed.D4
+    assert ab.led_pin == AppLed.CAppLed.GPIO4
     assert ab.last_state == 0
 
 @patch("AppLed.machine.Pin")
@@ -36,7 +36,7 @@ def test_create_led(mock_machine):
     """
     ab = AppLed.CAppLed(app_device)
     ab.create_led()
-    mock_machine.assert_called_with(AppLed.CAppLed.D4,AppLed.machine.Pin.OUT)
+    mock_machine.assert_called_with(AppLed.CAppLed.GPIO4,AppLed.machine.Pin.OUT)
 
 @patch("AppBase.network.WLAN")
 @patch("AppLed.machine.Pin")
@@ -86,7 +86,7 @@ def test_begin(mock_machine,mock_network):
     """
     ab = AppLed.CAppLed(app_device)
     ab.begin()
-    mock_machine.assert_called_with(AppLed.CAppLed.D4,AppLed.machine.Pin.OUT)
+    mock_machine.assert_called_with(AppLed.CAppLed.GPIO4,AppLed.machine.Pin.OUT)
 
 @patch("AppBase.network.WLAN")
 @patch("AppLed.machine.Pin")
