@@ -27,7 +27,7 @@ def test_appswitch():
     assert ab.subscribe_cmnd_version_msg == b'contX/switch/cmnd/version'
     assert ab.topic_cmnd_state_msg == b'contX/switch/cmnd/state'
     assert ab.topic_state_msg == b'contX/switch/state'
-    assert ab.btn_pin == AppSwitch.CAppSwitch.D6
+    assert ab.btn_pin == AppSwitch.CAppSwitch.GPIO26
     assert ab.last_state == 0
 
 @patch("AppSwitch.machine.Pin")
@@ -36,7 +36,7 @@ def test_create_switch(mock_machine):
     """
     ab = AppSwitch.CAppSwitch(app_device)
     ab.create_switch()
-    mock_machine.assert_called_with(AppSwitch.CAppSwitch.D6,AppSwitch.machine.Pin.IN)
+    mock_machine.assert_called_with(AppSwitch.CAppSwitch.GPIO26,AppSwitch.machine.Pin.IN)
 
 @patch("AppBase.network.WLAN")
 @patch("AppSwitch.machine.Pin")
@@ -83,7 +83,7 @@ def test_begin(mock_machine,mock_network):
     """
     ab = AppSwitch.CAppSwitch(app_device)
     ab.begin()
-    mock_machine.assert_called_with(AppSwitch.CAppSwitch.D6,AppSwitch.machine.Pin.IN)
+    mock_machine.assert_called_with(AppSwitch.CAppSwitch.GPIO26,AppSwitch.machine.Pin.IN)
 
 @patch("AppBase.network.WLAN")
 @patch("AppSwitch.time.sleep", side_effect=InterruptedError)
