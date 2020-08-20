@@ -11,7 +11,7 @@ class CAppSwitch(AppBase.CAppBase):
     inherited class for a switch application
     """
 
-    def __init__(self, device='switch',btn_pin = AppBase.CAppBase.D6,github_repo="https://github.com/matthandi/mrscontxUpdater"):
+    def __init__(self, device='switch',btn_pin = AppBase.CAppBase.GPIO26,github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
         constructor
         """
