@@ -29,10 +29,12 @@ def test_appbase():
     assert ab.subscribe_cmnd_download_msg     == b'contX/base/cmnd/download'
     assert ab.subscribe_cmnd_install_msg      == b'contX/base/cmnd/install'
     assert ab.subscribe_cmnd_setdevice_msg    == b'contX/base/cmnd/setdevice'
+    assert ab.subscribe_cmnd_mem_free_msg     == b'contX/base/cmnd/memfree'
 
     # publishing messages
     assert ab.topic_version_msg      == b'contX/base/version'
     assert ab.topic_repo_version_msg == b'contX/base/repoversion'
+    assert ab.topic_mem_free_msg     == b'contX/base/memfree'
     assert ab.topic_info_msg         == b'contX/base/info'
     assert ab.topic_warning_msg      == b'contX/base/warning'
     assert ab.topic_error_msg        == b'contX/base/error'
@@ -62,19 +64,22 @@ def test_mqtt_init(mock_umqtt,mock_network):
     mock_umqtt.return_value.connect.assert_called()
     mock_umqtt.return_value.set_callback.assert_called_with(ab.mqtt_subscribe_cb)
 
+@patch("AppBase.machine")
 @patch("AppBase.network.WLAN")
 @patch("AppBase.umqtt.simple.MQTTClient")
-def test_begin(mock_umqtt,mock_network):
+def test_begin(mock_umqtt,mock_network,mock_machine):
     ab = AppBase.CAppBase("base")
     ab.begin()
     subscribe_calls = [
                         call().subscribe(b'contX/base/cmnd/version'),
                         call().subscribe(b'contX/base/cmnd/repoversion'),
                         call().subscribe(b'contX/base/cmnd/download'),
-                        call().subscribe(b'contX/base/cmnd/install')
+                        call().subscribe(b'contX/base/cmnd/install'),
+                        call().subscribe(b'contX/base/cmnd/memfree')
                       ]
     mock_umqtt.assert_has_calls(subscribe_calls)
     mock_umqtt.return_value.publish.assert_called_with(b"contX/base/version",'0.0')
+    mock_machine.Timer.assert_called_with(1)
 
 @patch("AppBase.network.WLAN")
 @patch("AppBase.umqtt.simple.MQTTClient")
@@ -91,12 +96,13 @@ def test_iwe_messages(mock_umqtt,mock_network):
     ab.publish_error_message("Error message")
     mock_umqtt.return_value.publish.assert_called_with(b"contX/base/error",b'[E] Error message')
 
+@patch("AppBase.gc")
 @patch("AppBase.network.WLAN")
 @patch("AppBase.AppOtaUpd.CAppOtaUpd.install_files")
 @patch("AppBase.AppOtaUpd.CAppOtaUpd.download_updates_if_available")
 @patch("AppBase.AppOtaUpd.CAppOtaUpd.get_latest_release_version")
 @patch("AppBase.umqtt.simple.MQTTClient")
-def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_updates_if_available,mock_install_files,mock_network):
+def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_updates_if_available,mock_install_files,mock_network,mock_gc):
     """
     testing of the subscribe function:
     * it will be checked whether the callback is set correctly
@@ -146,6 +152,40 @@ def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_
     assert ab.device == "newdevice"
     assert ab.bdevice == b"newdevice"
     assert ab.client_id == "contXnewdevice"
+
+    # test request mem free
+    mock_umqtt.reset_mock()
+    mock_gc.mem_free.return_value = 1005
+    mock_gc.mem_alloc.return_value = 2020
+    ab.mqtt_subscribe_cb(b"contX/base/cmnd/memfree",b"")
+    mock_gc.mem_free.assert_called()
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/info',b"[I] Free mem 1005 Bytes, allocated 2020 Bytes")
+
+@patch("AppBase.machine")
+def test_toggle_alive_led(mock_machine):
+    """
+    testing toggle of internal led
+    """
+    ab = AppBase.CAppBase("base")
+    ab.init_alive_led()
+    assert ab.alive_led_state == False
+    ab.toggle_alive_led()
+    assert ab.alive_led_state == True
+    ab.toggle_alive_led()
+    assert ab.alive_led_state == False
+
+@patch("AppBase.machine.Timer")
+@patch("AppBase.machine.Pin")
+def test_init_alive_led(mock_machine_pin,mock_machine_timer):
+    """
+    inits and starts alive led with internal led
+    """
+    ab = AppBase.CAppBase("base")
+    ab.init_alive_led()
+    mock_machine_pin.assert_called_with(AppBase.CAppBase.GPIO2,AppBase.machine.Pin.OUT)
+    mock_machine_timer.assert_called_with(1)
+    #mock_machine_timer.return_value.init.assert_called_with(period=1000, mode=AppBase.machine.Timer.PERIODIC, callback=lambda t:AppBase.CAppBase.toggle_alive_led())
+
 
 @patch("AppBase.network.WLAN")
 @patch("AppBase.time.sleep", side_effect=InterruptedError)
