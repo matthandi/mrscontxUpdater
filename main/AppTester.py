@@ -77,18 +77,20 @@ class CAppTester(AppBase.CAppBase):
                     "State"  : -1
             }
         }
+        self.set_tester_devicename_id()
 
+    def set_tester_devicename_id(self):
         # command messages
         #   request for state
-        self.topic_cmnd_setpinmode_msg = self.topic + b"/" + self.bdevice + b"/cmnd/setpinmode"
-        self.topic_cmnd_getpinmode_msg = self.topic + b"/" + self.bdevice + b"/cmnd/getpinmode"
-        self.topic_cmnd_setpin_msg     = self.topic + b"/" + self.bdevice + b"/cmnd/setpin"
-        self.topic_cmnd_getpin_msg     = self.topic + b"/" + self.bdevice + b"/cmnd/getpin"
-        self.topic_cmnd_publishpin_msg = self.topic + b"/" + self.bdevice + b"/cmnd/publishpin"
-        self.topic_cmnd_statepin_msg   = self.topic + b"/" + self.bdevice + b"/cmnd/statepin"
+        self.topic_cmnd_setpinmode_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setpinmode"
+        self.topic_cmnd_getpinmode_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getpinmode"
+        self.topic_cmnd_setpin_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setpin"
+        self.topic_cmnd_getpin_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getpin"
+        self.topic_cmnd_publishpin_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/publishpin"
+        self.topic_cmnd_statepin_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/statepin"
         # publish messages
         #   publish state of tester
-        self.topic_statepin_msg = self.topic + b"/" + self.bdevice + b"/statepin"
+        self.topic_statepin_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/statepin"
 
     def set_pinmode(self,pin,pin_mode,val=0):
         """
@@ -186,6 +188,7 @@ class CAppTester(AppBase.CAppBase):
         start function for the tester application
         """
         super().begin()
+        self.set_tester_devicename_id()
         # subscribe to command message for set pinmode
         self.mqtt_subscribe_to_msg(self.topic_cmnd_setpinmode_msg + b"/#")
         # subscribe to command message for set pin state
