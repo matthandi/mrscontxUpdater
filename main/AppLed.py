@@ -11,20 +11,23 @@ class CAppLed(AppBase.CAppBase):
     inherited class for a led application
     """
 
-    def __init__(self, device='led',led_pin = AppBase.CAppBase.GPIO4,github_repo="https://github.com/matthandi/mrscontxUpdater"):
+    def __init__(self, device='led',device_id="0",led_pin = AppBase.CAppBase.GPIO4,github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
         constructor
         """
-        super().__init__(device=device,github_repo=github_repo)
+        super().__init__(device=device,device_id = device_id,github_repo=github_repo)
         self.led_pin = led_pin
         self.last_state = 0 
+        self.set_led_devicename_id()
+
+    def set_led_devicename_id(self):
         # command messages
         #   request for state
-        self.topic_cmnd_state_msg = self.topic + b"/" + self.bdevice + b"/cmnd/state"
-        self.topic_cmnd_set_msg = self.topic + b"/" + self.bdevice + b"/cmnd/set"
+        self.topic_cmnd_state_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/state"
+        self.topic_cmnd_set_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/set"
         # publish messages
         #   publish state of led
-        self.topic_state_msg = self.topic + b"/" + self.bdevice + b"/state"
+        self.topic_state_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/state"
 
     def create_led(self):
         """
@@ -63,6 +66,7 @@ class CAppLed(AppBase.CAppBase):
         start function for the led application
         """
         super().begin()
+        self.set_led_devicename_id()
         # create button interface
         self.create_led()
         # subscribe to command message for state
