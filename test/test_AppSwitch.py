@@ -18,15 +18,15 @@ def test_appswitch():
     ab = AppSwitch.CAppSwitch(app_device)
     assert ab.device == app_device
     assert ab.bdevice == b"switch"
-    assert ab.client_id == "contXswitch"
+    assert ab.client_id == "contXswitch0"
     assert ab.topic == b'contX'
     assert ab.github_repo == "https://github.com/matthandi/mrscontxUpdater"
     assert ab.main_dir == "main"
     assert ab.module == ""
     assert ab.user_agent == {'User-Agent':'contX-app'}
-    assert ab.subscribe_cmnd_version_msg == b'contX/switch/cmnd/version'
-    assert ab.topic_cmnd_state_msg == b'contX/switch/cmnd/state'
-    assert ab.topic_state_msg == b'contX/switch/state'
+    assert ab.subscribe_cmnd_version_msg == b'contX/switch/0/cmnd/version'
+    assert ab.topic_cmnd_state_msg == b'contX/switch/0/cmnd/state'
+    assert ab.topic_state_msg == b'contX/switch/0/state'
     assert ab.btn_pin == AppSwitch.CAppSwitch.GPIO26
     assert ab.last_state == 0
 
@@ -51,7 +51,7 @@ def test_check_switch(mock_umqtt,mock_machine,mock_network):
 
     mock_machine.return_value.value.return_value = 1
     ab.check_switch()
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/state",b'1')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/1/state",b'1')
 
     assert mock_umqtt.return_value.publish.call_count == 2
     ab.check_switch()
@@ -59,7 +59,7 @@ def test_check_switch(mock_umqtt,mock_machine,mock_network):
     
     mock_machine.return_value.value.return_value = 0
     ab.check_switch()
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/state",b'0')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/1/state",b'0')
 
 @patch("AppBase.network.WLAN")
 @patch("AppSwitch.umqtt.simple.MQTTClient")
@@ -68,11 +68,11 @@ def test_switch_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     ab = AppSwitch.CAppSwitch(app_device)
     ab.begin()
     ab.last_state = 1
-    ab.mqtt_switch_subscribe_cb(b"contX/switch/cmnd/state",'')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/state",b'1')
+    ab.mqtt_switch_subscribe_cb(b"contX/switch/1/cmnd/state",'')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/1/state",b'1')
     ab.last_state = 0
-    ab.mqtt_switch_subscribe_cb(b"contX/switch/cmnd/state",'')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/state",b'0')
+    ab.mqtt_switch_subscribe_cb(b"contX/switch/1/cmnd/state",'')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/switch/1/state",b'0')
 
 
 @patch("AppBase.network.WLAN")
