@@ -11,19 +11,22 @@ class CAppSwitch(AppBase.CAppBase):
     inherited class for a switch application
     """
 
-    def __init__(self, device='switch',btn_pin = AppBase.CAppBase.GPIO26,github_repo="https://github.com/matthandi/mrscontxUpdater"):
+    def __init__(self, device='switch',device_id="0",btn_pin = AppBase.CAppBase.GPIO26,github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
         constructor
         """
-        super().__init__(device=device,github_repo=github_repo)
+        super().__init__(device=device,device_id=device_id,github_repo=github_repo)
         self.btn_pin = btn_pin
-        self.last_state = 0 
+        self.last_state = 0
+        self.set_switch_devicename_id()
+
+    def set_switch_devicename_id(self):
         # command messages
         #   request for state
-        self.topic_cmnd_state_msg = self.topic + b"/" + self.bdevice + b"/cmnd/state"
+        self.topic_cmnd_state_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/state"
         # publish messages
         #   publish state of switch
-        self.topic_state_msg = self.topic + b"/" + self.bdevice + b"/state"
+        self.topic_state_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/state"
 
     def create_switch(self):
         """
@@ -58,6 +61,7 @@ class CAppSwitch(AppBase.CAppBase):
         start function for the switch application
         """
         super().begin()
+        self.set_switch_devicename_id()
         # create button interface
         self.create_switch()
         # subscribe to command message for state
