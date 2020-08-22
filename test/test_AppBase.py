@@ -16,7 +16,9 @@ def test_appbase():
     ab = AppBase.CAppBase("base")
     assert ab.device == "base"
     assert ab.bdevice == b"base"
-    assert ab.client_id == "contXbase"
+    assert ab.device_id == "0"
+    assert ab.bdevice_id == b"0"
+    assert ab.client_id == "contXbase0"
     assert ab.topic == b'contX'
     assert ab.github_repo == "https://github.com/matthandi/mrscontxUpdater"
     assert ab.main_dir == "main"
@@ -24,20 +26,20 @@ def test_appbase():
     assert ab.user_agent == {'User-Agent':'contX-app'}
 
     # command messages
-    assert ab.subscribe_cmnd_version_msg      == b'contX/base/cmnd/version'
-    assert ab.subscribe_cmnd_repoversion_msg  == b'contX/base/cmnd/repoversion'
-    assert ab.subscribe_cmnd_download_msg     == b'contX/base/cmnd/download'
-    assert ab.subscribe_cmnd_install_msg      == b'contX/base/cmnd/install'
-    assert ab.subscribe_cmnd_setdevice_msg    == b'contX/base/cmnd/setdevice'
-    assert ab.subscribe_cmnd_mem_free_msg     == b'contX/base/cmnd/memfree'
+    assert ab.subscribe_cmnd_version_msg      == b'contX/base/0/cmnd/version'
+    assert ab.subscribe_cmnd_repoversion_msg  == b'contX/base/0/cmnd/repoversion'
+    assert ab.subscribe_cmnd_download_msg     == b'contX/base/0/cmnd/download'
+    assert ab.subscribe_cmnd_install_msg      == b'contX/base/0/cmnd/install'
+    assert ab.subscribe_cmnd_setdevice_msg    == b'contX/base/0/cmnd/setdevice'
+    assert ab.subscribe_cmnd_mem_free_msg     == b'contX/base/0/cmnd/memfree'
 
     # publishing messages
-    assert ab.topic_version_msg      == b'contX/base/version'
-    assert ab.topic_repo_version_msg == b'contX/base/repoversion'
-    assert ab.topic_mem_free_msg     == b'contX/base/memfree'
-    assert ab.topic_info_msg         == b'contX/base/info'
-    assert ab.topic_warning_msg      == b'contX/base/warning'
-    assert ab.topic_error_msg        == b'contX/base/error'
+    assert ab.topic_version_msg      == b'contX/base/0/version'
+    assert ab.topic_repo_version_msg == b'contX/base/0/repoversion'
+    assert ab.topic_mem_free_msg     == b'contX/base/0/memfree'
+    assert ab.topic_info_msg         == b'contX/base/0/info'
+    assert ab.topic_warning_msg      == b'contX/base/0/warning'
+    assert ab.topic_error_msg        == b'contX/base/0/error'
 
 def test_read_config():
     """
@@ -49,6 +51,10 @@ def test_read_config():
     assert ab.ssid_wlan == "xxxxx"
     assert ab.key_wlan == "xxxx"
     assert ab.mqtt_server == "xxx.xxx.xxx.xxx"
+    assert ab.device == "base"
+    assert ab.bdevice == b"base"
+    assert ab.device_id == "1"
+    assert ab.bdevice_id == b"1"
 
 @patch("AppBase.network.WLAN")
 @patch("AppBase.umqtt.simple.MQTTClient")
@@ -60,7 +66,7 @@ def test_mqtt_init(mock_umqtt,mock_network):
     ab = AppBase.CAppBase("base")
     ab.read_configfile()
     ab.connect_mqtt()
-    mock_umqtt.assert_called_with("contXbase","xxx.xxx.xxx.xxx")
+    mock_umqtt.assert_called_with("contXbase1","xxx.xxx.xxx.xxx")
     mock_umqtt.return_value.connect.assert_called()
     mock_umqtt.return_value.set_callback.assert_called_with(ab.mqtt_subscribe_cb)
 
@@ -71,14 +77,14 @@ def test_begin(mock_umqtt,mock_network,mock_machine):
     ab = AppBase.CAppBase("base")
     ab.begin()
     subscribe_calls = [
-                        call().subscribe(b'contX/base/cmnd/version'),
-                        call().subscribe(b'contX/base/cmnd/repoversion'),
-                        call().subscribe(b'contX/base/cmnd/download'),
-                        call().subscribe(b'contX/base/cmnd/install'),
-                        call().subscribe(b'contX/base/cmnd/memfree')
+                        call().subscribe(b'contX/base/1/cmnd/version'),
+                        call().subscribe(b'contX/base/1/cmnd/repoversion'),
+                        call().subscribe(b'contX/base/1/cmnd/download'),
+                        call().subscribe(b'contX/base/1/cmnd/install'),
+                        call().subscribe(b'contX/base/1/cmnd/memfree')
                       ]
     mock_umqtt.assert_has_calls(subscribe_calls)
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/version",'0.0')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/version",'0.0')
     mock_machine.Timer.assert_called_with(1)
 
 @patch("AppBase.network.WLAN")
@@ -90,11 +96,11 @@ def test_iwe_messages(mock_umqtt,mock_network):
     ab = AppBase.CAppBase("base")
     ab.begin()
     ab.publish_info_message("Info message")
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/info",b'[I] Info message')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/info",b'[I] Info message')
     ab.publish_warning_message("Warning message")
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/warning",b'[W] Warning message')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/warning",b'[W] Warning message')
     ab.publish_error_message("Error message")
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/error",b'[E] Error message')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/error",b'[E] Error message')
 
 @patch("AppBase.gc")
 @patch("AppBase.network.WLAN")
@@ -112,43 +118,43 @@ def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_
     ab.begin()
 
     # test request version
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/version",'0.0')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/version",'0.0')
     ab.mqtt_subscribe_cb(ab.subscribe_cmnd_version_msg,'1.0')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/version",'0.0')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/version",'0.0')
     
     # test request repoversion
     mock_umqtt.reset_mock()
     mock_latest_release_version.return_value="1.1"
-    ab.mqtt_subscribe_cb(b"contX/base/cmnd/repoversion",b"")
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/repoversion",'1.1')
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/repoversion",b"")
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/repoversion",'1.1')
     
     # test request download
     mock_umqtt.reset_mock()
     mock_download_updates_if_available.return_value = True
-    ab.mqtt_subscribe_cb(b"contX/base/cmnd/download",b"")
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/download",b"")
     mock_download_updates_if_available.assert_called()
-    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/info',b"[I] update successfully downloaded")
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/info',b"[I] update successfully downloaded")
     mock_umqtt.reset_mock()
     mock_download_updates_if_available.return_value = False
-    ab.mqtt_subscribe_cb(b"contX/base/cmnd/download",b"")
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/download",b"")
     mock_download_updates_if_available.assert_called()
-    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/info',b"[I] no update available")
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/info',b"[I] no update available")
 
     # test request install
     mock_umqtt.reset_mock()
     mock_install_files.return_value = True
-    ab.mqtt_subscribe_cb(b"contX/base/cmnd/install",b"")
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/install",b"")
     mock_install_files.assert_called()
     mock_umqtt.return_value.publish.assert_not_called()
     mock_umqtt.reset_mock()
     mock_install_files.return_value = False
-    ab.mqtt_subscribe_cb(b"contX/base/cmnd/install",b"")
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/install",b"")
     mock_install_files.assert_called()
-    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/error',b"[E] Installation of files failed")
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/error',b"[E] Installation of files failed")
 
     # test request set device
     mock_umqtt.reset_mock()
-    ab.mqtt_subscribe_cb(b"contX/base/cmnd/setdevice",b"newdevice")
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/setdevice",b"newdevice")
     assert ab.device == "newdevice"
     assert ab.bdevice == b"newdevice"
     assert ab.client_id == "contXnewdevice"
@@ -157,9 +163,9 @@ def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_
     mock_umqtt.reset_mock()
     mock_gc.mem_free.return_value = 1005
     mock_gc.mem_alloc.return_value = 2020
-    ab.mqtt_subscribe_cb(b"contX/base/cmnd/memfree",b"")
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/memfree",b"")
     mock_gc.mem_free.assert_called()
-    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/info',b"[I] Free mem 1005 Bytes, allocated 2020 Bytes")
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/info',b"[I] Free mem 1005 Bytes, allocated 2020 Bytes")
 
 @patch("AppBase.machine")
 def test_toggle_alive_led(mock_machine):
