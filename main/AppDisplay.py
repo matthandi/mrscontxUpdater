@@ -12,20 +12,23 @@ class CAppDisplay(AppBase.CAppBase):
     inherited class for a display application
     """
     GPIO15 = 15
-    def __init__(self, device='display',github_repo="https://github.com/matthandi/mrscontxUpdater"):
+    def __init__(self, device='display',device_id = "0",github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
         constructor
         """
         super().__init__(device=device,github_repo=github_repo)
+        self.set_display_devicename_id()
+        self.dspl_onoff_state = 1
+
+    def set_display_devicename_id(self):
         # command messages
         #   request for state
-        self.topic_cmnd_fill_msg    = self.topic + b"/" + self.bdevice + b"/cmnd/fill"
-        self.topic_cmnd_settext_msg = self.topic + b"/" + self.bdevice + b"/cmnd/settext"
-        self.topic_cmnd_gettext_msg = self.topic + b"/" + self.bdevice + b"/cmnd/gettext"
+        self.topic_cmnd_fill_msg    = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/fill"
+        self.topic_cmnd_settext_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/settext"
+        self.topic_cmnd_gettext_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/gettext"
         # publish messages
         #   publish state of led
-        self.topic_text_msg = self.topic + b"/" + self.bdevice + b"/text"
-        self.dspl_onoff_state = 1
+        self.topic_text_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/text"
  
     def create_display(self):
         """
@@ -72,6 +75,7 @@ class CAppDisplay(AppBase.CAppBase):
         start function for the led application
         """
         super().begin()
+        self.set_display_devicename_id()
         # create button interface
         self.create_display()
         # subscribe to command message for set text
