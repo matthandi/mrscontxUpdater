@@ -18,15 +18,15 @@ def test_appled():
     ab = AppLed.CAppLed(app_device)
     assert ab.device == app_device
     assert ab.bdevice == b"led"
-    assert ab.client_id == "contXled"
+    assert ab.client_id == "contXled0"
     assert ab.topic == b'contX'
     assert ab.github_repo == "https://github.com/matthandi/mrscontxUpdater"
     assert ab.main_dir == "main"
     assert ab.module == ""
     assert ab.user_agent == {'User-Agent':'contX-app'}
-    assert ab.subscribe_cmnd_version_msg == b'contX/led/cmnd/version'
-    assert ab.topic_cmnd_set_msg == b'contX/led/cmnd/set'
-    assert ab.topic_cmnd_state_msg == b'contX/led/cmnd/state'
+    assert ab.subscribe_cmnd_version_msg == b'contX/led/0/cmnd/version'
+    assert ab.topic_cmnd_set_msg == b'contX/led/0/cmnd/set'
+    assert ab.topic_cmnd_state_msg == b'contX/led/0/cmnd/state'
     assert ab.led_pin == AppLed.CAppLed.GPIO4
     assert ab.last_state == 0
 
@@ -58,7 +58,7 @@ def test_publish_led_state(mock_machine,mock_umqtt,mock_network):
     ab.begin()
     ab.last_state = 1
     ab.publish_led_state()
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/led/state",'1')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/led/1/state",'1')
 
 @patch("AppBase.network.WLAN")
 @patch("AppLed.umqtt.simple.MQTTClient")
@@ -67,14 +67,14 @@ def test_led_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     ab = AppLed.CAppLed(app_device)
     ab.begin()
     ab.set_led(1)
-    ab.mqtt_led_subscribe_cb(b"contX/led/cmnd/state",'0')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/led/state",'1')
+    ab.mqtt_led_subscribe_cb(b"contX/led/1/cmnd/state",'0')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/led/1/state",'1')
     ab.set_led(0)
-    ab.mqtt_led_subscribe_cb(b"contX/led/cmnd/state",'')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/led/state",'0')
-    ab.mqtt_led_subscribe_cb(b"contX/led/cmnd/set",'0')
+    ab.mqtt_led_subscribe_cb(b"contX/led/1/cmnd/state",'')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/led/1/state",'0')
+    ab.mqtt_led_subscribe_cb(b"contX/led/1/cmnd/set",'0')
     mock_machine.return_value.value.assert_called_with(0)
-    ab.mqtt_led_subscribe_cb(b"contX/led/cmnd/set",'1')
+    ab.mqtt_led_subscribe_cb(b"contX/led/1/cmnd/set",'1')
     mock_machine.return_value.value.assert_called_with(1)
 
 
