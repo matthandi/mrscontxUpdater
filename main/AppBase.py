@@ -32,33 +32,41 @@ class CAppBase:
     GPIO36 = 36
     GPIO39 = 39
 
-    def __init__(self,device = "",github_repo="https://github.com/matthandi/mrscontxUpdater"):
+    def __init__(self,device = "",device_id="0",github_repo="https://github.com/matthandi/mrscontxUpdater"):
         """
         constructor
         """
         super().__init__()
-        self.device = device
-        self.bdevice = bytes(device,'utf-8')
-        self.client_id = "contX" + device
         self.topic = b'contX'
+        self.device = device
+        self.device_id = device_id
         self.github_repo = github_repo
         self.main_dir = "main"
         self.module = ""
         self.user_agent =  {'User-Agent':'contX-app'}
+        self.set_devicename_id(device,device_id)
+
+    def set_devicename_id(self,device,device_id):
+        """
+        sets the devicename and the device_id
+        """
+        self.bdevice = bytes(device,'utf-8')
+        self.bdevice_id = bytes(device_id,'utf-8')
+        self.client_id = "contX" + device + device_id
         # mqtt commands
-        self.subscribe_cmnd_version_msg = self.topic + b"/" + self.bdevice + b"/cmnd/version"
-        self.subscribe_cmnd_repoversion_msg = self.topic + b"/" + self.bdevice + b"/cmnd/repoversion"
-        self.subscribe_cmnd_download_msg = self.topic + b"/" + self.bdevice + b"/cmnd/download"
-        self.subscribe_cmnd_install_msg = self.topic + b"/" + self.bdevice + b"/cmnd/install"
-        self.subscribe_cmnd_setdevice_msg = self.topic + b"/" + self.bdevice + b"/cmnd/setdevice"
-        self.subscribe_cmnd_mem_free_msg = self.topic + b"/" + self.bdevice + b"/cmnd/memfree"
+        self.subscribe_cmnd_version_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/version"
+        self.subscribe_cmnd_repoversion_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/repoversion"
+        self.subscribe_cmnd_download_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/download"
+        self.subscribe_cmnd_install_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/install"
+        self.subscribe_cmnd_setdevice_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setdevice"
+        self.subscribe_cmnd_mem_free_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/memfree"
         # mqtt publishing
-        self.topic_version_msg      = self.topic + b"/" + self.bdevice + b"/version"
-        self.topic_repo_version_msg = self.topic + b"/" + self.bdevice + b"/repoversion"
-        self.topic_mem_free_msg     = self.topic + b"/" + self.bdevice + b"/memfree"
-        self.topic_info_msg         = self.topic + b"/" + self.bdevice + b"/info"
-        self.topic_warning_msg      = self.topic + b"/" + self.bdevice + b"/warning"
-        self.topic_error_msg        = self.topic + b"/" + self.bdevice + b"/error"
+        self.topic_version_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/version"
+        self.topic_repo_version_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/repoversion"
+        self.topic_mem_free_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/memfree"
+        self.topic_info_msg         = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/info"
+        self.topic_warning_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/warning"
+        self.topic_error_msg        = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/error"
 
     def toggle_alive_led(self):
         """
@@ -82,6 +90,21 @@ class CAppBase:
         self.ssid_wlan = self.ssid_data['SSIDS'][0]['ssid']
         self.key_wlan = self.ssid_data['SSIDS'][0]['key']
         self.mqtt_server = self.ssid_data['SSIDS'][0]['mqttbroker']
+        try:
+            device_name = self.ssid_data["device"]["name"] 
+            device_id   = self.ssid_data["device"]["id"]
+            d_changed = False
+            if device_name != "":
+                self.device = device_name
+                d_changed = True
+            if device_id != "0":
+                self.device_id = device_id
+                d_changed = True
+            if d_changed == True:
+                self.set_devicename_id(self.device,self.device_id)
+
+        except:
+            pass
 
     def set_devicename(self,new_device_name):
         """
