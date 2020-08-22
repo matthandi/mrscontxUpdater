@@ -18,23 +18,23 @@ def test_apptester():
     ab = AppTester.CAppTester(app_device)
     assert ab.device == app_device
     assert ab.bdevice == b"tester"
-    assert ab.client_id == "contXtester"
+    assert ab.client_id == "contXtester0"
     assert ab.topic == b'contX'
     assert ab.github_repo == "https://api.github.com/repos/matthandi/mrscontxUpdater"
     assert ab.main_dir == "main"
     assert ab.module == ""
     assert ab.user_agent == {'User-Agent':'contX-app'}
-    assert ab.subscribe_cmnd_version_msg == b'contX/tester/cmnd/version'
+    assert ab.subscribe_cmnd_version_msg == b'contX/tester/0/cmnd/version'
 
     # multi pin command messages
-    assert ab.topic_cmnd_setpinmode_msg == b'contX/tester/cmnd/setpinmode' #/Dx
-    assert ab.topic_cmnd_getpinmode_msg == b'contX/tester/cmnd/getpinmode' #/Dx
-    assert ab.topic_cmnd_setpin_msg == b'contX/tester/cmnd/setpin'         #/Dx
-    assert ab.topic_cmnd_getpin_msg == b'contX/tester/cmnd/getpin'         #/Dx
-    assert ab.topic_cmnd_publishpin_msg == b'contX/tester/cmnd/publishpin' #/Dx
-    assert ab.topic_cmnd_statepin_msg == b'contX/tester/cmnd/statepin'     #/Dx
+    assert ab.topic_cmnd_setpinmode_msg == b'contX/tester/0/cmnd/setpinmode' #/Dx
+    assert ab.topic_cmnd_getpinmode_msg == b'contX/tester/0/cmnd/getpinmode' #/Dx
+    assert ab.topic_cmnd_setpin_msg == b'contX/tester/0/cmnd/setpin'         #/Dx
+    assert ab.topic_cmnd_getpin_msg == b'contX/tester/0/cmnd/getpin'         #/Dx
+    assert ab.topic_cmnd_publishpin_msg == b'contX/tester/0/cmnd/publishpin' #/Dx
+    assert ab.topic_cmnd_statepin_msg == b'contX/tester/0/cmnd/statepin'     #/Dx
 
-    assert ab.topic_statepin_msg == b'contX/tester/statepin'               #/Dx
+    assert ab.topic_statepin_msg == b'contX/tester/0/statepin'               #/Dx
 
 @patch("AppTester.machine.Pin")
 def test_set_pinmode(mock_machine):
@@ -59,7 +59,7 @@ def test_publish_pin_state(mock_machine,mock_umqtt,mock_network):
     ab.begin()
     assert ab.set_pinmode("GPIO4","OUT",1) == True
     assert ab.publish_pin_state("GPIO4") == True
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/statepin/GPIO4",'1')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/statepin/GPIO4",'1')
     assert ab.publish_pin_state("GPIOx") == False
 
 
@@ -106,15 +106,15 @@ def test_publish_in_pins(mock_machine,mock_umqtt,mock_network):
     ab = AppTester.CAppTester(app_device)
     ab.begin()
     mock_machine.return_value.value.return_value = 1
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/setpinmode/GPIO26",b"IN")
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/setpinmode/GPIO26",b"IN")
     ab.publish_in_pins()
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/statepin/GPIO26",'1')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/statepin/GPIO26",'1')
     ab.publish_in_pins()
     mock_umqtt.reset_mock()
     mock_umqtt.return_value.publish.assert_not_called()
     mock_machine.return_value.value.return_value = 0
     ab.publish_in_pins()
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/statepin/GPIO26",'0')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/statepin/GPIO26",'0')
 
 
 @patch("AppBase.network.WLAN")
@@ -126,10 +126,10 @@ def test_tester_subscribe_cb(mock_machine,mock_umqtt,mock_setpin,mock_getpin,moc
     ab = AppTester.CAppTester(app_device)
     ab.begin()
     # testing of setpinmode
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/setpinmode/GPIO4",b"OUT")
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/setpin/GPIO4",b'1')
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/setpinmode/GPIO4",b"OUT")
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/setpin/GPIO4",b'1')
     mock_setpin.assert_called_with("GPIO4",'1')
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/setpin/GPIO26",b'1')
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/setpin/GPIO26",b'1')
     mock_setpin.assert_called_with("GPIO26",'1')
 
 
@@ -140,15 +140,15 @@ def test_tester_getpin_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     # testing of getpin
     ab = AppTester.CAppTester(app_device)
     ab.begin()
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/setpinmode/GPIO26",b"IN")
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/setpinmode/GPIO26",b"IN")
     mock_machine.return_value.value.return_value = 1
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/getpin/GPIO26",b"")
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/statepin/GPIO26",'1')
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/getpin/GPIO26",b"")
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/statepin/GPIO26",'1')
     mock_machine.return_value.value.return_value = 0
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/getpin/GPIO26",b"")
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/statepin/GPIO26",'0')
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/getpin/GPIO26",b"")
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/statepin/GPIO26",'0')
     mock_umqtt.reset_mock()
-    ab.mqtt_tester_subscribe_cb(b"contX/tester/cmnd/getpin/GPIO4",b"")
+    ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/getpin/GPIO4",b"")
     mock_umqtt.return_value.publish.assert_not_called()
 
 @patch("AppBase.network.WLAN")
