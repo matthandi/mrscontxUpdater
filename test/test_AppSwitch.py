@@ -85,9 +85,10 @@ def test_begin(mock_machine,mock_network):
     ab.begin()
     mock_machine.assert_called_with(AppSwitch.CAppSwitch.GPIO26,AppSwitch.machine.Pin.IN)
 
+@patch("AppSwitch.machine.Pin")
 @patch("AppBase.network.WLAN")
 @patch("AppSwitch.time.sleep", side_effect=InterruptedError)
-def test_main(mock_timesleep,mock_network):
+def test_main(mock_timesleep,mock_network,mock_machine_pin):
     """
     testing of main program - a little bit tricky, because it contains an indefinite
     loop -> time.sleep will be mocked with an assertion :)
