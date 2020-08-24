@@ -54,13 +54,29 @@ def test_get_latest_release_version(mock_urequests):
     ou = AppOtaUpd.CAppOtaUpd(repo_url)
     assert ou.get_latest_release_version() == '1.1'
 
+    # invalid response
+    mock_urequests.get.return_value = Mock(status_code=201, json=lambda : {"download_url":"http://file.ext","tag":"1.1"})
+    ou = AppOtaUpd.CAppOtaUpd(repo_url)
+    assert ou.get_latest_release_version() == '[E] reading latest version'
+
+
+#@patch("AppOtaUpd.CAppOtaUpd")
 @patch("AppOtaUpd.os")
-def test_rmtree(mock_os):
+def test_rmtree(mock_os):#,mock_rmtree):
     """
     testing remove tree
     - at the moment no recursive test
     """
-    mock_os.ilistdir.side_effect = [[["file",0x0],["dir",0x00],["file1",0x0]]]
+    def side_effect(*args, **kwargs):
+        if side_effect.counter < 1:
+            side_effect.counter += 1
+            return AppOtaUpd.CAppOtaUpd.rmtree("main/dir")
+        else:
+            return None
+    side_effect.counter = 0
+    #mock_rmtree.return_value.rmtree.side_effect = side_effect
+    #mock_os.ilistdir.side_effect = [[["file",0x0],["dir",0x4000],["file1",0x0]]]
+    mock_os.ilistdir.side_effect = [[["file",0x0],["dir",0x000],["file1",0x0]]]
     ou = AppOtaUpd.CAppOtaUpd(repo_url)
     ou.rmtree("main")
     mock_os.remove.assert_called_with("main/file1")
