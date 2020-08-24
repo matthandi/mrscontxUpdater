@@ -84,13 +84,13 @@ class CAppBase:
         self.alive_timer = machine.Timer(1)
         self.alive_timer.init(period=1000,mode=machine.Timer.PERIODIC, callback=lambda t:self.toggle_alive_led())
 
-    def read_configfile(self):
-        with open('ssid.json') as f:
-            self.ssid_data = ujson.load(f)
-        self.ssid_wlan = self.ssid_data['SSIDS'][0]['ssid']
-        self.key_wlan = self.ssid_data['SSIDS'][0]['key']
-        self.mqtt_server = self.ssid_data['SSIDS'][0]['mqttbroker']
+    def read_configfile(self,filename = 'ssid.json'):
         try:
+            with open(filename) as f:
+                self.ssid_data = ujson.load(f)
+            self.ssid_wlan = self.ssid_data['SSIDS'][0]['ssid']
+            self.key_wlan = self.ssid_data['SSIDS'][0]['key']
+            self.mqtt_server = self.ssid_data['SSIDS'][0]['mqttbroker']
             device_name = self.ssid_data["device"]["name"] 
             device_id   = self.ssid_data["device"]["id"]
             d_changed = False
@@ -102,9 +102,9 @@ class CAppBase:
                 d_changed = True
             if d_changed == True:
                 self.set_devicename_id(self.device,self.device_id)
-
+            return True
         except (IndexError,KeyError,OSError,TypeError,ValueError):
-            pass
+            return False
 
     def set_devicename(self,new_device_name):
         """
@@ -229,7 +229,6 @@ class CAppBase:
         self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server)
         self.set_subscribe_cb(self.mqtt_subscribe_cb)
         self.mqtt_client.connect()
-        #time.sleep(0.1)
 
     def set_subscribe_cb(self,cb):
         """
