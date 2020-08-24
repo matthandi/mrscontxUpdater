@@ -103,7 +103,7 @@ class CAppBase:
             if d_changed == True:
                 self.set_devicename_id(self.device,self.device_id)
 
-        except:
+        except (IndexError,KeyError,OSError,TypeError,ValueError):
             pass
 
     def set_devicename(self,new_device_name):
