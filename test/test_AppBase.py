@@ -47,14 +47,15 @@ def test_read_config():
     and setting the right properties
     """
     ab = AppBase.CAppBase("base")
-    ab.read_configfile()
+    assert ab.read_configfile("ssid-check.json") == True
     assert ab.ssid_wlan == "xxxxx"
     assert ab.key_wlan == "xxxx"
     assert ab.mqtt_server == "xxx.xxx.xxx.xxx"
-    assert ab.device == "base"
-    assert ab.bdevice == b"base"
+    assert ab.device == "check"
+    assert ab.bdevice == b"check"
     assert ab.device_id == "1"
     assert ab.bdevice_id == b"1"
+    assert ab.read_configfile("notexisting.json") == False
 
 @patch("AppBase.network.WLAN")
 @patch("AppBase.umqtt.simple.MQTTClient")
@@ -63,8 +64,10 @@ def test_mqtt_init(mock_umqtt,mock_network):
     testing of correct reading of (dummy) config file
     and setting the right properties
     """
+    mock_network.return_value.isconnected.side_effect = [False,False,True]
     ab = AppBase.CAppBase("base")
     ab.read_configfile()
+    ab.init_alive_led()
     ab.connect_mqtt()
     mock_umqtt.assert_called_with("contXbase1","xxx.xxx.xxx.xxx")
     mock_umqtt.return_value.connect.assert_called()
