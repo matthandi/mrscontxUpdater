@@ -229,7 +229,7 @@ class CAppBase:
         self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server)
         self.set_subscribe_cb(self.mqtt_subscribe_cb)
         self.mqtt_client.connect()
-        time.sleep(0.1)
+        #time.sleep(0.1)
 
     def set_subscribe_cb(self,cb):
         """
