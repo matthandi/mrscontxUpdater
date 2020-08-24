@@ -42,9 +42,6 @@ class CAppDisplay(AppBase.CAppBase):
         self.dspl.fill(0)
         self.dspl.show()
 
-    def publish_display_text(self):
-        self.mqtt_client.publish(self.topic_state_msg,str(self.last_state))
-
     def mqtt_display_subscribe_cb(self,topic,payload):
         """
         callback function for mqtt subscribes
@@ -67,7 +64,7 @@ class CAppDisplay(AppBase.CAppBase):
                 y = int(data[2])
                 self.dspl.text(text,x,y) 
                 self.dspl.show()
-            except: 
+            except (IndexError,KeyError,OSError,TypeError,ValueError): 
                 self.publish_error_message("invalid displaytext: " + str(payload))
 
     def begin(self):
