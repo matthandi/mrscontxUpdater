@@ -65,7 +65,7 @@ class CAppOtaUpd:
             version = latest_release.json()['tag_name']
             latest_release.close()
             return version
-        except:
+        except (IndexError,KeyError,OSError,TypeError,ValueError):
             return "[E] reading latest version"
 
     def rmtree(self, directory):
