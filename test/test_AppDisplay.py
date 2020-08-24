@@ -73,6 +73,14 @@ def test_display_subscribe_cb(mock_machine,mock_umqtt,mock_network,mock_ssd1306)
     ab.mqtt_display_subscribe_cb(b"contX/display/1/cmnd/settext",b"hello world,0,5")
     mock_ssd1306.return_value.text.assert_called_with('hello world',0,5)
 
+    # test request set text with invalid text
+    mock_umqtt.reset_mock()
+    mock_ssd1306.reset_mock()
+    ab.mqtt_display_subscribe_cb(b"contX/display/1/cmnd/settext",b"hello world")
+    mock_ssd1306.return_value.text.assert_not_called()
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/display/1/error", b"[E] invalid displaytext: b'hello world'")
+
+
 @patch("AppDisplay.umqtt.simple.MQTTClient.subscribe")
 @patch("AppBase.network.WLAN")
 @patch("AppBase.machine.Pin")
