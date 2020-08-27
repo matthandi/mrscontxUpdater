@@ -57,8 +57,8 @@ class CAppBase:
         self.subscribe_cmnd_version_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/version"
         self.subscribe_cmnd_repoversion_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/repoversion"
         self.subscribe_cmnd_download_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/download"
-        self.subscribe_cmnd_install_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/install"
-        self.subscribe_cmnd_setdevice_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setdevice"
+        self.subscribe_cmnd_install_msg  = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/install"
+        self.subscribe_cmnd_reboot_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/reboot"
         self.subscribe_cmnd_mem_free_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/memfree"
         # mqtt publishing
         self.topic_version_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/version"
@@ -138,9 +138,9 @@ class CAppBase:
             # request download
             self.request_install_files()
 
-        # request for setting new device name
-        if topic == self.subscribe_cmnd_setdevice_msg:
-            self.set_devicename(payload.decode("utf-8"))
+        # request reboot
+        if topic == self.subscribe_cmnd_reboot_msg:
+            machine.reset()
 
         # request mem free
         if topic == self.subscribe_cmnd_mem_free_msg:
@@ -256,6 +256,7 @@ class CAppBase:
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_download_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_install_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_mem_free_msg)
+        self.mqtt_subscribe_to_msg(self.subscribe_cmnd_reboot_msg)
 
 
 def main():   
