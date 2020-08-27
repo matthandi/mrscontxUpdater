@@ -30,7 +30,7 @@ def test_appbase():
     assert ab.subscribe_cmnd_repoversion_msg  == b'contX/base/0/cmnd/repoversion'
     assert ab.subscribe_cmnd_download_msg     == b'contX/base/0/cmnd/download'
     assert ab.subscribe_cmnd_install_msg      == b'contX/base/0/cmnd/install'
-    assert ab.subscribe_cmnd_setdevice_msg    == b'contX/base/0/cmnd/setdevice'
+    assert ab.subscribe_cmnd_reboot_msg       == b'contX/base/0/cmnd/reboot'
     assert ab.subscribe_cmnd_mem_free_msg     == b'contX/base/0/cmnd/memfree'
 
     # publishing messages
@@ -84,7 +84,8 @@ def test_begin(mock_umqtt,mock_network,mock_machine):
                         call().subscribe(b'contX/base/1/cmnd/repoversion'),
                         call().subscribe(b'contX/base/1/cmnd/download'),
                         call().subscribe(b'contX/base/1/cmnd/install'),
-                        call().subscribe(b'contX/base/1/cmnd/memfree')
+                        call().subscribe(b'contX/base/1/cmnd/memfree'),
+                        call().subscribe(b'contX/base/1/cmnd/reboot')
                       ]
     mock_umqtt.assert_has_calls(subscribe_calls)
     mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/version",'0.0')
@@ -105,13 +106,14 @@ def test_iwe_messages(mock_umqtt,mock_network):
     ab.publish_error_message("Error message")
     mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/error",b'[E] Error message')
 
+@patch("AppBase.machine")
 @patch("AppBase.gc")
 @patch("AppBase.network.WLAN")
 @patch("AppBase.AppOtaUpd.CAppOtaUpd.install_files")
 @patch("AppBase.AppOtaUpd.CAppOtaUpd.download_updates_if_available")
 @patch("AppBase.AppOtaUpd.CAppOtaUpd.get_latest_release_version")
 @patch("AppBase.umqtt.simple.MQTTClient")
-def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_updates_if_available,mock_install_files,mock_network,mock_gc):
+def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_updates_if_available,mock_install_files,mock_network,mock_gc,mock_machine):
     """
     testing of the subscribe function:
     * it will be checked whether the callback is set correctly
@@ -155,12 +157,10 @@ def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_
     mock_install_files.assert_called()
     mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/error',b"[E] Installation of files failed")
 
-    # test request set device
+    # test request reboot
     mock_umqtt.reset_mock()
-    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/setdevice",b"newdevice")
-    assert ab.device == "newdevice"
-    assert ab.bdevice == b"newdevice"
-    assert ab.client_id == "contXnewdevice"
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/reboot",b"")
+    mock_machine.reset.assert_called()
 
     # test request mem free
     mock_umqtt.reset_mock()
