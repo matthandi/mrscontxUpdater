@@ -22,56 +22,56 @@ class CAppTester(AppBase.CAppBase):
         self.pin_map = {
             "GPIO4": {
                     "PinPort": AppBase.CAppBase.GPIO4,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO4,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
             },
             "GPIO16": {
                     "PinPort": AppBase.CAppBase.GPIO16,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO16,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
             },
             "GPIO17": {
                     "PinPort": AppBase.CAppBase.GPIO17,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO17,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
             },
             "GPIO25": {
                     "PinPort": AppBase.CAppBase.GPIO25,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO25,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
             },
             "GPIO26": {
                     "PinPort": AppBase.CAppBase.GPIO26,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO26,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
             },
             "GPIO27": {
                     "PinPort": AppBase.CAppBase.GPIO27,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO27,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
             },
             "GPIO32": {
                     "PinPort": AppBase.CAppBase.GPIO32,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO32,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
             },
             "GPIO33": {
                     "PinPort": AppBase.CAppBase.GPIO33,
-                    "Pin"    : machine.Pin(self.defaultpin,machine.Pin.IN),
+                    "Pin"    : machine.Pin(AppBase.CAppBase.GPIO33,machine.Pin.IN),
                     "Mode"   : "",
                     "Publish": -1,
                     "State"  : -1
