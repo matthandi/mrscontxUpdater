@@ -24,6 +24,7 @@ def test_appbase():
     assert ab.main_dir == "main"
     assert ab.module == ""
     assert ab.user_agent == {'User-Agent':'contX-app'}
+    assert ab.alive_led_pin == ab.GPIO2,"alive led pin must be set to GPIO2"
 
     # command messages
     assert ab.subscribe_cmnd_version_msg      == b'contX/base/0/cmnd/version'
