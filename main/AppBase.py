@@ -32,13 +32,14 @@ class CAppBase:
     GPIO36 = 36
     GPIO39 = 39
 
-    def __init__(self,device = "",device_id="0",github_repo="https://github.com/matthandi/mrscontxUpdater"):
+    def __init__(self,device = "",device_id="0",github_repo="https://github.com/matthandi/mrscontxUpdater",alive_led_pin=GPIO2):
         """
         constructor
         """
         super().__init__()
         self.topic = b'contX'
         self.device = device
+        self.alive_led_pin = alive_led_pin
         self.device_id = device_id
         self.github_repo = github_repo
         self.main_dir = "main"
@@ -80,7 +81,7 @@ class CAppBase:
         inits the alive led
         """
         self.alive_led_state = False
-        self.alive_led = machine.Pin(CAppBase.GPIO2, machine.Pin.OUT)
+        self.alive_led = machine.Pin(self.alive_led_pin, machine.Pin.OUT)
         self.alive_timer = machine.Timer(1)
         self.alive_timer.init(period=1000,mode=machine.Timer.PERIODIC, callback=lambda t:self.toggle_alive_led())
 
