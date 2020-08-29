@@ -32,6 +32,7 @@ def test_appdisplay():
     assert ab.topic_text_msg             == b'contX/display/0/text'
 
     assert ab.dspl_onoff_state           == 1
+    assert ab.alive_led_pin              == AppDisplay.CAppDisplay.GPIO25
 
 @patch("AppDisplay.machine.I2C")
 @patch("AppDisplay.machine")
