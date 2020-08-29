@@ -61,10 +61,12 @@ class CAppBase:
         self.subscribe_cmnd_install_msg  = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/install"
         self.subscribe_cmnd_reboot_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/reboot"
         self.subscribe_cmnd_mem_free_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/memfree"
+        self.subscribe_cmnd_getip_msg    = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getip"
         # mqtt publishing
         self.topic_version_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/version"
         self.topic_repo_version_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/repoversion"
         self.topic_mem_free_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/memfree"
+        self.topic_ip_msg           = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/ip"
         self.topic_info_msg         = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/info"
         self.topic_warning_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/warning"
         self.topic_error_msg        = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/error"
@@ -150,6 +152,11 @@ class CAppBase:
             msg = msg + str(gc.mem_alloc()) + " Bytes"
             self.publish_info_message(msg)
 
+        # request for ip
+        if topic == self.subscribe_cmnd_getip_msg:
+            ip_response = self.station.ifconfig()
+            self.mqtt_client.publish(self.topic_ip_msg,str(ip_response[0]).encode('utf-8'))
+
     def request_download(self):
         """
         requests download of new App SW if available
@@ -220,11 +227,11 @@ class CAppBase:
         self.mqtt_client.publish(self.topic_error_msg,b'[E] ' + bytes(msg,'utf-8'))
 
     def connect_mqtt(self):
-        station = network.WLAN(network.STA_IF)
-        station.active(True)
-        station.connect(self.ssid_wlan, self.key_wlan)
+        self.station = network.WLAN(network.STA_IF)
+        self.station.active(True)
+        self.station.connect(self.ssid_wlan, self.key_wlan)
         print("connecting to wlan...")
-        while station.isconnected() == False:
+        while self.station.isconnected() == False:
             self.toggle_alive_led()
  
         self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server)
@@ -258,6 +265,7 @@ class CAppBase:
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_install_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_mem_free_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_reboot_msg)
+        self.mqtt_subscribe_to_msg(self.subscribe_cmnd_getip_msg)
 
 
 def main():   
