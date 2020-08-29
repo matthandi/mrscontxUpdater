@@ -33,14 +33,17 @@ def test_appbase():
     assert ab.subscribe_cmnd_install_msg      == b'contX/base/0/cmnd/install'
     assert ab.subscribe_cmnd_reboot_msg       == b'contX/base/0/cmnd/reboot'
     assert ab.subscribe_cmnd_mem_free_msg     == b'contX/base/0/cmnd/memfree'
+    assert ab.subscribe_cmnd_getip_msg        == b'contX/base/0/cmnd/getip'
 
     # publishing messages
     assert ab.topic_version_msg      == b'contX/base/0/version'
     assert ab.topic_repo_version_msg == b'contX/base/0/repoversion'
     assert ab.topic_mem_free_msg     == b'contX/base/0/memfree'
+    assert ab.topic_ip_msg           == b'contX/base/0/ip'
     assert ab.topic_info_msg         == b'contX/base/0/info'
     assert ab.topic_warning_msg      == b'contX/base/0/warning'
     assert ab.topic_error_msg        == b'contX/base/0/error'
+    assert ab.topic_ip_msg           == b'contX/base/0/ip'
 
 def test_read_config():
     """
@@ -75,7 +78,7 @@ def test_mqtt_init(mock_umqtt,mock_network):
     mock_umqtt.return_value.set_callback.assert_called_with(ab.mqtt_subscribe_cb)
 
 @patch("AppBase.machine")
-@patch("AppBase.network.WLAN")
+@patch("AppBase.network")
 @patch("AppBase.umqtt.simple.MQTTClient")
 def test_begin(mock_umqtt,mock_network,mock_machine):
     ab = AppBase.CAppBase("base")
@@ -86,7 +89,8 @@ def test_begin(mock_umqtt,mock_network,mock_machine):
                         call().subscribe(b'contX/base/1/cmnd/download'),
                         call().subscribe(b'contX/base/1/cmnd/install'),
                         call().subscribe(b'contX/base/1/cmnd/memfree'),
-                        call().subscribe(b'contX/base/1/cmnd/reboot')
+                        call().subscribe(b'contX/base/1/cmnd/reboot'),
+                        call().subscribe(b'contX/base/1/cmnd/getip')
                       ]
     mock_umqtt.assert_has_calls(subscribe_calls)
     mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/version",'0.0')
@@ -170,6 +174,14 @@ def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_
     ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/memfree",b"")
     mock_gc.mem_free.assert_called()
     mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/info',b"[I] Free mem 1005 Bytes, allocated 2020 Bytes")
+
+    # test request get ip
+    mock_umqtt.reset_mock()
+    mock_network.return_value.ifconfig.return_value = ('192.168.4.1', '255.255.255.0', '192.168.4.1', '8.8.8.8')
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/getip",b"")
+    mock_gc.mem_free.assert_called()
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/ip',b"192.168.4.1")
+
 
 @patch("AppBase.machine")
 def test_toggle_alive_led(mock_machine):
