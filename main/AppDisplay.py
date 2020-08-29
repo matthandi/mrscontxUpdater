@@ -16,7 +16,8 @@ class CAppDisplay(AppBase.CAppBase):
         """
         constructor
         """
-        super().__init__(device=device,github_repo=github_repo)
+        # set alive led to pin GPIO25
+        super().__init__(device=device,github_repo=github_repo,alive_led_pin = AppBase.CAppBase.GPIO25)
         self.set_display_devicename_id()
         self.dspl_onoff_state = 1
 
