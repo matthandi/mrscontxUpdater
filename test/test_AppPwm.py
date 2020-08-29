@@ -27,20 +27,23 @@ def test_apppwm(mock_machine):
     assert ab.user_agent == {'User-Agent':'contX-app'}
 
     # internal values
-    assert ab.position == 0
-    assert ab.freqency == 50
-    assert ab.pwm_pin == AppPwm.CAppPwm.GPIO4
+    assert ab.duty      == 77
+    assert ab.frequency == 50
+    assert ab.pwm_pin   == AppPwm.machine.Pin(4,AppPwm.machine.Pin.OUT)
 
-    mock_machine.PWM.assert_called_with(4,freq=50,duty=0)
+    mock_machine.PWM.assert_called_with(ab.pwm_pin,freq=50,duty=77)
     
     # base app subscription
     assert ab.subscribe_cmnd_version_msg == b'contX/pwm/0/cmnd/version'
     # commands
-    assert ab.topic_cmnd_set_pos_msg == b'contX/pwm/0/cmnd/setpos'
-    assert ab.topic_cmnd_get_pos_msg == b'contX/pwm/0/cmnd/getpos'
+    assert ab.topic_cmnd_set_duty_msg      == b'contX/pwm/0/cmnd/setduty'
+    assert ab.topic_cmnd_get_duty_msg      == b'contX/pwm/0/cmnd/getduty'
+    assert ab.topic_cmnd_set_frequency_msg == b'contX/pwm/0/cmnd/setfrequency'
+    assert ab.topic_cmnd_get_frequency_msg == b'contX/pwm/0/cmnd/getfrequency'
 
     # publishing topics
-    assert ab.topic_pos_msg == b'contX/pwm/0/pos'
+    assert ab.topic_duty_msg      == b'contX/pwm/0/duty'
+    assert ab.topic_frequency_msg == b'contX/pwm/0/frequency'
 
 @patch("AppBase.network.WLAN")
 @patch("AppPwm.umqtt.simple.MQTTClient")
@@ -48,16 +51,20 @@ def test_apppwm(mock_machine):
 def test_pwm_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     ab = AppPwm.CAppPwm(app_device)
     ab.begin()
-    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setpos",'0')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setduty",'0')
     mock_machine.return_value.duty.assert_called_with(0)
-    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setpos",'50')
-    mock_machine.return_value.duty.assert_called_with(512)
-    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getpos",'')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/pos",'512.0')
-    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setpos",'100')
-    mock_machine.return_value.duty.assert_called_with(1024)
-    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getpos",'')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/pos",'1024.0')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setduty",'50')
+    mock_machine.return_value.duty.assert_called_with(50)
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getduty",'')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/duty",b'50')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setduty",'100')
+    mock_machine.return_value.duty.assert_called_with(100)
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getduty",'')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/duty",b'100')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setfrequency",'1000')
+    mock_machine.return_value.freq.assert_called_with(1000)
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getfrequency",'')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/frequency",b'1000')
 
 @patch("AppPwm.umqtt.simple.MQTTClient.subscribe")
 @patch("AppBase.network.WLAN")
@@ -77,14 +84,12 @@ def test_begin(mock_machine,mock_network,mock_umqtt):
                         call(b'contX/pwm/1/cmnd/memfree'),
                         call(b'contX/pwm/1/cmnd/reboot'),
                         call(b'contX/pwm/1/cmnd/getip'),
-                        call(b'contX/pwm/1/cmnd/setpos'),
-                        call(b'contX/pwm/1/cmnd/getpos')
+                        call(b'contX/pwm/1/cmnd/setduty'),
+                        call(b'contX/pwm/1/cmnd/getduty'),
+                        call(b'contX/pwm/1/cmnd/setfrequency'),
+                        call(b'contX/pwm/1/cmnd/getfrequency')
                       ]
     mock_umqtt.assert_has_calls(subscribe_calls)
-
-
-
-
 
 @patch("AppBase.network.WLAN")
 @patch("AppPwm.machine.Pin")
