@@ -73,13 +73,13 @@ class CAppPwm(AppBase.CAppBase):
                 d_range = int(d_max) - int(d_min)
                 step_wait = int(d_duration) / abs(d_range) / 1000.
                 step = -1 if d_range < 0 else 1
-                for d in range(int(d_min),int(d_max)+1,step):
+                for d in range(int(d_min),int(d_max)+1*step,step):
                     self.duty = d
                     self.pwm.duty(d)
                     time.sleep(step_wait)
 
             except (ZeroDivisionError,IndexError,KeyError,OSError,TypeError,ValueError):
-                self.publish_error_message("Invalid dutysweep data :" + payload)
+                self.publish_error_message("Invalid dutysweep data: " + payload)
 
     def begin(self):
         """
