@@ -40,10 +40,10 @@ def test_apppwm(mock_machine):
     assert ab.topic_cmnd_get_duty_msg      == b'contX/pwm/0/cmnd/getduty'
     assert ab.topic_cmnd_set_frequency_msg == b'contX/pwm/0/cmnd/setfrequency'
     assert ab.topic_cmnd_get_frequency_msg == b'contX/pwm/0/cmnd/getfrequency'
-
+    assert ab.topic_cmnd_duty_sweep_msg    == b'contX/pwm/0/cmnd/dutysweep'
     # publishing topics
-    assert ab.topic_duty_msg      == b'contX/pwm/0/duty'
-    assert ab.topic_frequency_msg == b'contX/pwm/0/frequency'
+    assert ab.topic_duty_msg               == b'contX/pwm/0/duty'
+    assert ab.topic_frequency_msg          == b'contX/pwm/0/frequency'
 
 @patch("AppBase.network.WLAN")
 @patch("AppPwm.umqtt.simple.MQTTClient")
@@ -65,6 +65,24 @@ def test_pwm_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     mock_machine.return_value.freq.assert_called_with(1000)
     ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getfrequency",'')
     mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/frequency",b'1000')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",'110,120,500')
+    duty_calls = [
+                    call(0),
+                    call(50),
+                    call(100),
+                    call(110),
+                    call(111),
+                    call(112),
+                    call(113),
+                    call(114),
+                    call(115),
+                    call(116),
+                    call(117),
+                    call(118),
+                    call(119),
+                    call(120)
+                    ]
+    mock_machine.return_value.duty.assert_has_calls(duty_calls)
 
 @patch("AppPwm.umqtt.simple.MQTTClient.subscribe")
 @patch("AppBase.network.WLAN")
@@ -87,7 +105,8 @@ def test_begin(mock_machine,mock_network,mock_umqtt):
                         call(b'contX/pwm/1/cmnd/setduty'),
                         call(b'contX/pwm/1/cmnd/getduty'),
                         call(b'contX/pwm/1/cmnd/setfrequency'),
-                        call(b'contX/pwm/1/cmnd/getfrequency')
+                        call(b'contX/pwm/1/cmnd/getfrequency'),
+                        call(b'contX/pwm/1/cmnd/dutysweep')
                       ]
     mock_umqtt.assert_has_calls(subscribe_calls)
 
