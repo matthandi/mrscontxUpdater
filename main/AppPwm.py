@@ -29,10 +29,11 @@ class CAppPwm(AppBase.CAppBase):
     def set_pwm_devicename_id(self):
         self.prefix_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id
         # command messages
-        self.topic_cmnd_set_duty_msg = self.prefix_msg + b"/cmnd/setduty"
-        self.topic_cmnd_get_duty_msg = self.prefix_msg + b"/cmnd/getduty"
+        self.topic_cmnd_set_duty_msg      = self.prefix_msg + b"/cmnd/setduty"
+        self.topic_cmnd_get_duty_msg      = self.prefix_msg + b"/cmnd/getduty"
         self.topic_cmnd_set_frequency_msg = self.prefix_msg + b"/cmnd/setfrequency"
         self.topic_cmnd_get_frequency_msg = self.prefix_msg + b"/cmnd/getfrequency"
+        self.topic_cmnd_duty_sweep_msg    = self.prefix_msg + b"/cmnd/dutysweep"
         # publish messages
         #   publish duty
         self.topic_duty_msg      = self.prefix_msg + b"/duty"
@@ -63,6 +64,23 @@ class CAppPwm(AppBase.CAppBase):
         if topic == self.topic_cmnd_get_frequency_msg:
             self.mqtt_client.publish(self.topic_frequency_msg,str(self.frequency).encode('utf-8'))
 
+        # request duty sweep
+        if topic == self.topic_cmnd_duty_sweep_msg:
+            try:
+                # expected: duty_min, duty_max, duration
+                #             65    , 120     , 1500
+                [d_min,d_max,d_duration] = payload.split(",")
+                d_range = int(d_max) - int(d_min)
+                step_wait = int(d_duration) / abs(d_range) / 1000.
+                step = -1 if d_range < 0 else 1
+                for d in range(int(d_min),int(d_max)+1,step):
+                    self.duty = d
+                    self.pwm.duty(d)
+                    time.sleep(step_wait)
+
+            except (ZeroDivisionError,IndexError,KeyError,OSError,TypeError,ValueError):
+                self.publish_error_message("Invalid dutysweep data :" + payload)
+
     def begin(self):
         """
         start function for the TPL application
@@ -77,6 +95,8 @@ class CAppPwm(AppBase.CAppBase):
         self.mqtt_subscribe_to_msg(self.topic_cmnd_set_frequency_msg)
         # subscribe to command message for get frequency
         self.mqtt_subscribe_to_msg(self.topic_cmnd_get_frequency_msg)
+        # subscribe to command message for dutysweep
+        self.mqtt_subscribe_to_msg(self.topic_cmnd_duty_sweep_msg)
         # overwrite callback of base class
         self.set_subscribe_cb(self.mqtt_pwm_subscribe_cb)
 
