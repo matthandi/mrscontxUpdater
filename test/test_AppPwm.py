@@ -66,6 +66,7 @@ def test_pwm_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getfrequency",'')
     mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/frequency",b'1000')
     ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",'110,120,500')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",'120,110,500')
     duty_calls = [
                     call(0),
                     call(50),
@@ -80,9 +81,22 @@ def test_pwm_subscribe_cb(mock_machine,mock_umqtt,mock_network):
                     call(117),
                     call(118),
                     call(119),
-                    call(120)
+                    call(120),
+                    call(120),
+                    call(119),
+                    call(118),
+                    call(117),
+                    call(116),
+                    call(115),
+                    call(114),
+                    call(113),
+                    call(112),
+                    call(111),
+                    call(110)
                     ]
     mock_machine.return_value.duty.assert_has_calls(duty_calls)
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",'120,120')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/error",b'[E] Invalid dutysweep data: 120,120')
 
 @patch("AppPwm.umqtt.simple.MQTTClient.subscribe")
 @patch("AppBase.network.WLAN")
