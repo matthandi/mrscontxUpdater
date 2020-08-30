@@ -76,6 +76,7 @@ def test_led_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     mock_machine.return_value.value.assert_called_with(0)
     ab.mqtt_led_subscribe_cb(b"contX/led/1/cmnd/set",'1')
     mock_machine.return_value.value.assert_called_with(1)
+    mock_umqtt.return_value.set_callback.assert_called_with(ab.mqtt_led_subscribe_cb)
 
 
 @patch("AppBase.network.WLAN")
