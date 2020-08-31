@@ -69,7 +69,7 @@ class CAppPwm(AppBase.CAppBase):
             try:
                 # expected: duty_min, duty_max, duration
                 #             65    , 120     , 1500
-                [d_min,d_max,d_duration] = payload.split(",")
+                [d_min,d_max,d_duration] = str(payload,'utf-8').split(",")
                 d_range = int(d_max) - int(d_min)
                 step_wait = int(d_duration) / abs(d_range) / 1000.
                 step = -1 if d_range < 0 else 1
