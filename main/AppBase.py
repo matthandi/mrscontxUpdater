@@ -109,14 +109,6 @@ class CAppBase:
         except (IndexError,KeyError,OSError,TypeError,ValueError):
             return False
 
-    def set_devicename(self,new_device_name):
-        """
-        sets a new device name (e.g. for debugging / testing)
-        """
-        self.device = new_device_name
-        self.bdevice = bytes(new_device_name,'utf-8')
-        self.client_id = "contX" + new_device_name
-
     def mqtt_subscribe_cb(self,topic,payload):
         """
         subscribe callback function
