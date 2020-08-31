@@ -45,10 +45,11 @@ def test_apppwm(mock_machine):
     assert ab.topic_duty_msg               == b'contX/pwm/0/duty'
     assert ab.topic_frequency_msg          == b'contX/pwm/0/frequency'
 
+@patch("time.sleep")
 @patch("AppBase.network.WLAN")
 @patch("AppPwm.umqtt.simple.MQTTClient")
 @patch("AppPwm.machine.PWM")
-def test_pwm_subscribe_cb(mock_machine,mock_umqtt,mock_network):
+def test_pwm_subscribe_cb(mock_machine,mock_umqtt,mock_network,mock_time_sleep):
     ab = AppPwm.CAppPwm(app_device)
     ab.begin()
     ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/setduty",'0')
@@ -65,8 +66,8 @@ def test_pwm_subscribe_cb(mock_machine,mock_umqtt,mock_network):
     mock_machine.return_value.freq.assert_called_with(1000)
     ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/getfrequency",'')
     mock_umqtt.return_value.publish.assert_called_with(b"contX/pwm/1/frequency",b'1000')
-    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",'110,120,500')
-    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",'120,110,500')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",b'110,120,500')
+    ab.mqtt_pwm_subscribe_cb(b"contX/pwm/1/cmnd/dutysweep",b'120,110,500')
     duty_calls = [
                     call(0),
                     call(50),
