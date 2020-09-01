@@ -98,6 +98,7 @@ def test_begin(mock_machine,mock_network,mock_umqtt):
                         call(b'contX/display/1/cmnd/download'),
                         call(b'contX/display/1/cmnd/install'),
                         call(b'contX/display/1/cmnd/memfree'),
+                        call(b'contX/display/1/cmnd/memalloc'),
                         call(b'contX/display/1/cmnd/reboot'),
                         call(b'contX/display/1/cmnd/getip'),
                         call(b'contX/display/1/cmnd/settext'),
