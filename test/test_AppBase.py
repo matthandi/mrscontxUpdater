@@ -33,12 +33,14 @@ def test_appbase():
     assert ab.subscribe_cmnd_install_msg      == b'contX/base/0/cmnd/install'
     assert ab.subscribe_cmnd_reboot_msg       == b'contX/base/0/cmnd/reboot'
     assert ab.subscribe_cmnd_mem_free_msg     == b'contX/base/0/cmnd/memfree'
+    assert ab.subscribe_cmnd_mem_alloc_msg    == b'contX/base/0/cmnd/memalloc'
     assert ab.subscribe_cmnd_getip_msg        == b'contX/base/0/cmnd/getip'
 
     # publishing messages
     assert ab.topic_version_msg      == b'contX/base/0/version'
     assert ab.topic_repo_version_msg == b'contX/base/0/repoversion'
     assert ab.topic_mem_free_msg     == b'contX/base/0/memfree'
+    assert ab.topic_mem_alloc_msg    == b'contX/base/0/memalloc'
     assert ab.topic_ip_msg           == b'contX/base/0/ip'
     assert ab.topic_info_msg         == b'contX/base/0/info'
     assert ab.topic_warning_msg      == b'contX/base/0/warning'
@@ -89,6 +91,7 @@ def test_begin(mock_umqtt,mock_network,mock_machine):
                         call().subscribe(b'contX/base/1/cmnd/download'),
                         call().subscribe(b'contX/base/1/cmnd/install'),
                         call().subscribe(b'contX/base/1/cmnd/memfree'),
+                        call().subscribe(b'contX/base/1/cmnd/memalloc'),
                         call().subscribe(b'contX/base/1/cmnd/reboot'),
                         call().subscribe(b'contX/base/1/cmnd/getip')
                       ]
@@ -170,10 +173,16 @@ def test_mqtt_subscribe_cb(mock_umqtt,mock_latest_release_version,mock_download_
     # test request mem free
     mock_umqtt.reset_mock()
     mock_gc.mem_free.return_value = 1005
-    mock_gc.mem_alloc.return_value = 2020
     ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/memfree",b"")
     mock_gc.mem_free.assert_called()
-    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/info',b"[I] Free mem 1005 Bytes, allocated 2020 Bytes")
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/memfree',b'1005')
+
+    # test request mem alloc
+    mock_umqtt.reset_mock()
+    mock_gc.mem_alloc.return_value = 2020
+    ab.mqtt_subscribe_cb(b"contX/base/1/cmnd/memalloc",b"")
+    mock_gc.mem_alloc.assert_called()
+    mock_umqtt.return_value.publish.assert_called_with(b'contX/base/1/memalloc',b"2020")
 
     # test request get ip
     mock_umqtt.reset_mock()
