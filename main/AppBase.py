@@ -55,17 +55,20 @@ class CAppBase:
         self.bdevice_id = bytes(device_id,'utf-8')
         self.client_id = "contX" + device + device_id
         # mqtt commands
-        self.subscribe_cmnd_version_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/version"
+        self.subscribe_cmnd_version_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/version"
         self.subscribe_cmnd_repoversion_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/repoversion"
-        self.subscribe_cmnd_download_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/download"
-        self.subscribe_cmnd_install_msg  = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/install"
-        self.subscribe_cmnd_reboot_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/reboot"
-        self.subscribe_cmnd_mem_free_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/memfree"
-        self.subscribe_cmnd_getip_msg    = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getip"
+        self.subscribe_cmnd_download_msg    = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/download"
+        self.subscribe_cmnd_install_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/install"
+        self.subscribe_cmnd_reboot_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/reboot"
+        self.subscribe_cmnd_mem_free_msg    = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/memfree"
+        self.subscribe_cmnd_mem_alloc_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/memalloc"
+        self.subscribe_cmnd_getip_msg       = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getip"
+
         # mqtt publishing
         self.topic_version_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/version"
         self.topic_repo_version_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/repoversion"
         self.topic_mem_free_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/memfree"
+        self.topic_mem_alloc_msg    = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/memalloc"
         self.topic_ip_msg           = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/ip"
         self.topic_info_msg         = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/info"
         self.topic_warning_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/warning"
@@ -140,9 +143,12 @@ class CAppBase:
         # request mem free
         if topic == self.subscribe_cmnd_mem_free_msg:
             gc.collect()
-            msg = "Free mem " + str(gc.mem_free()) + " Bytes, allocated "
-            msg = msg + str(gc.mem_alloc()) + " Bytes"
-            self.publish_info_message(msg)
+            self.mqtt_client.publish(self.topic_mem_free_msg,str(gc.mem_free()).encode('utf-8'))
+
+        # request mem alloc
+        if topic == self.subscribe_cmnd_mem_alloc_msg:
+            gc.collect()
+            self.mqtt_client.publish(self.topic_mem_alloc_msg,str(gc.mem_alloc()).encode('utf-8'))
 
         # request for ip
         if topic == self.subscribe_cmnd_getip_msg:
@@ -256,6 +262,7 @@ class CAppBase:
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_download_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_install_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_mem_free_msg)
+        self.mqtt_subscribe_to_msg(self.subscribe_cmnd_mem_alloc_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_reboot_msg)
         self.mqtt_subscribe_to_msg(self.subscribe_cmnd_getip_msg)
 
