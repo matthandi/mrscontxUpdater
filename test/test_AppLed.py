@@ -166,6 +166,10 @@ def test_led_subscribe_cb(mock_machine,mock_umqtt,mock_network,mock_time_sleep):
     ab.mqtt_led_subscribe_cb(b"contX/led/1/cmnd/rygsweep",b'gyr;20')
     mock_umqtt.return_value.publish.assert_called_with(b"contX/led/1/error",b'[E] Invalid rygsweep data: gyr;20')
 
+    mock_umqtt.reset_mock()
+    ab.mqtt_led_subscribe_cb(b"contX/led/1/cmnd/rygsweep",b'gxr,2000')
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/led/1/error",b'[E] Invalid rygsweep data: gxr,2000')
+
 
 @patch("AppLed.umqtt.simple.MQTTClient")
 @patch("AppBase.network.WLAN")
