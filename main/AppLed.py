@@ -91,7 +91,7 @@ class CAppLed(AppBase.CAppBase):
                 self.y_led.value(self.y_last_state)
                 self.g_led.value(self.g_last_state)
             except (ZeroDivisionError,IndexError,KeyError,OSError,TypeError,ValueError):
-                self.publish_error_message("Invalid rygset data: " + payload)
+                self.publish_error_message("Invalid rygset data: " + str(payload,'utf-8'))
 
         # request rygstate command
         if topic == self.topic_cmnd_ryg_state_msg:
@@ -141,7 +141,7 @@ class CAppLed(AppBase.CAppBase):
                     raise ValueError
 
             except (ZeroDivisionError,IndexError,KeyError,OSError,TypeError,ValueError):
-                self.publish_error_message("Invalid rygset data: " + payload)
+                self.publish_error_message("Invalid rygsweep data: " + str(payload,'utf-8'))
 
     def begin(self):
         """
