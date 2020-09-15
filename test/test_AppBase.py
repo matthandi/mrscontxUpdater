@@ -97,7 +97,6 @@ def test_begin(mock_umqtt,mock_network,mock_machine):
                       ]
     mock_umqtt.assert_has_calls(subscribe_calls)
     mock_umqtt.return_value.publish.assert_called_with(b"contX/base/1/version",'0.0')
-    mock_machine.Timer.assert_called_with(1)
 
 @patch("AppBase.network.WLAN")
 @patch("AppBase.umqtt.simple.MQTTClient")
