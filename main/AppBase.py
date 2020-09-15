@@ -32,7 +32,7 @@ class CAppBase:
     GPIO36 = 36
     GPIO39 = 39
 
-    def __init__(self,device = "",device_id="0",github_repo="https://github.com/matthandi/mrscontxUpdater",alive_led_pin=GPIO2):
+    def __init__(self,device = "",device_id="0",github_repo="https://github.com/matthandi/mrscontxUpdater",alive_led_pin=GPIO2,alive_led_mode=0):
         """
         constructor
         """
@@ -40,6 +40,7 @@ class CAppBase:
         self.topic = b'contX'
         self.device = device
         self.alive_led_pin = alive_led_pin
+        self.alive_led_mode = alive_led_mode
         self.device_id = device_id
         self.github_repo = github_repo
         self.main_dir = "main"
@@ -73,6 +74,7 @@ class CAppBase:
         self.topic_info_msg         = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/info"
         self.topic_warning_msg      = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/warning"
         self.topic_error_msg        = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/error"
+        self.alive_led_state        = False
 
     def toggle_alive_led(self):
         """
@@ -85,10 +87,17 @@ class CAppBase:
         """
         inits the alive led
         """
-        self.alive_led_state = False
         self.alive_led = machine.Pin(self.alive_led_pin, machine.Pin.OUT)
         self.alive_timer = machine.Timer(1)
         self.alive_timer.init(period=1000,mode=machine.Timer.PERIODIC, callback=lambda t:self.toggle_alive_led())
+
+    def flash_led(self):
+        self.alive_led.value(1)
+        time.sleep(0.05)
+        self.alive_led.value(0)
+
+    def init_flash_led(self):
+        self.alive_led = machine.Pin(self.alive_led_pin, machine.Pin.OUT)
 
     def read_configfile(self,filename = 'ssid.json'):
         try:
@@ -116,6 +125,7 @@ class CAppBase:
         """
         subscribe callback function
         """
+        self.flash_led()
         # request for version
         if topic == self.subscribe_cmnd_version_msg:
             # publish version
@@ -231,7 +241,10 @@ class CAppBase:
         print("connecting to wlan...")
         while self.station.isconnected() == False:
             self.toggle_alive_led()
+            time.sleep(0.05)
  
+        self.alive_led_state = False
+        self.alive_led.value(self.alive_led_state)
         self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server)
         self.set_subscribe_cb(self.mqtt_subscribe_cb)
         self.mqtt_client.connect()
@@ -253,7 +266,9 @@ class CAppBase:
         """
         call this function to begin
         """
-        self.init_alive_led()
+        if self.alive_led_mode > 0:
+            self.init_alive_led()
+        self.init_flash_led()
         self.read_configfile()
         self.connect_mqtt()
         self.mqtt_publish_version()
