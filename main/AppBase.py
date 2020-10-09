@@ -106,6 +106,7 @@ class CAppBase:
             self.ssid_wlan = self.ssid_data['SSIDS'][0]['ssid']
             self.key_wlan = self.ssid_data['SSIDS'][0]['key']
             self.mqtt_server = self.ssid_data['SSIDS'][0]['mqttbroker']
+            self.mqtt_port   = self.ssid_data['SSIDS'][0]['mqttport']
             device_name = self.ssid_data["device"]["name"] 
             device_id   = self.ssid_data["device"]["id"]
             d_changed = False
@@ -245,7 +246,7 @@ class CAppBase:
  
         self.alive_led_state = False
         self.alive_led.value(self.alive_led_state)
-        self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server)
+        self.mqtt_client = umqtt.simple.MQTTClient(self.client_id,self.mqtt_server,port=self.mqtt_port)
         self.set_subscribe_cb(self.mqtt_subscribe_cb)
         self.mqtt_client.connect()
 
