@@ -76,7 +76,7 @@ def test_mqtt_init(mock_umqtt,mock_network):
     ab.read_configfile()
     ab.init_alive_led()
     ab.connect_mqtt()
-    mock_umqtt.assert_called_with("contXbase1","xxx.xxx.xxx.xxx",port="1880")
+    mock_umqtt.assert_called_with("contXbase1","xxx.xxx.xxx.xxx",port="1883")
     mock_umqtt.return_value.connect.assert_called()
     mock_umqtt.return_value.set_callback.assert_called_with(ab.mqtt_subscribe_cb)
 
