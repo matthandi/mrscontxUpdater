@@ -82,15 +82,20 @@ class CAppTester(AppBase.CAppBase):
     def set_tester_devicename_id(self):
         # command messages
         #   request for state
-        self.topic_cmnd_setpinmode_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setpinmode"
-        self.topic_cmnd_getpinmode_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getpinmode"
-        self.topic_cmnd_setpin_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setpin"
-        self.topic_cmnd_getpin_msg     = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getpin"
-        self.topic_cmnd_publishpin_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/publishpin"
-        self.topic_cmnd_statepin_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/statepin"
+        self.topic_cmnd_setpinmode_msg          = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setpinmode"
+        self.topic_cmnd_getpinmode_msg          = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getpinmode"
+        self.topic_cmnd_setpin_msg              = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setpin"
+        self.topic_cmnd_getpin_msg              = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getpin"
+        self.topic_cmnd_publishpin_msg          = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/publishpin"
+        self.topic_cmnd_statepin_msg            = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/statepin"
+        self.topic_cmnd_setautopublishpin_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/setautopublishpin"
+        self.topic_cmnd_getautopublishpin_msg   = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/cmnd/getautopublishpin"
+        
         # publish messages
         #   publish state of tester
-        self.topic_statepin_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/statepin"
+        self.topic_statepin_msg       = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/statepin"
+        self.topic_modepin_msg        = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/modepin"
+        self.topic_autopublishpin_msg = self.topic + b"/" + self.bdevice + b"/" + self.bdevice_id + b"/autopublishpin"
 
     def set_pinmode(self,pin,pin_mode,val=0):
         """
@@ -129,7 +134,7 @@ class CAppTester(AppBase.CAppBase):
         publishes all pins with input mode on change
         """
         for pin in self.pin_map:
-            if self.pin_map[pin]['Mode'] == "IN":
+            if self.pin_map[pin]['Publish'] == 1:
                 oldstate = self.pin_map[pin]['State']
                 retval = self.get_pin(pin)
                 if retval[1] == True and retval[0] != oldstate:
@@ -172,6 +177,13 @@ class CAppTester(AppBase.CAppBase):
             pin = topic.replace(self.topic_cmnd_setpinmode_msg + b"/",b"")
             self.set_pinmode((pin).decode("utf-8"),(payload).decode("utf-8"))
 
+        # get pinmode command found
+        if self.topic_cmnd_getpinmode_msg in topic:
+            pin = (topic.replace(self.topic_cmnd_getpinmode_msg + b"/",b"")).decode("utf-8")
+            if pin in self.pin_map:
+                mode = self.pin_map[pin]['Mode']
+                self.mqtt_client.publish(self.topic_modepin_msg + bytes("/" + pin,'utf-8'),mode)
+
         # set pin command found
         if self.topic_cmnd_setpin_msg in topic:
             pin = topic.replace(self.topic_cmnd_setpin_msg + b"/",b"")
@@ -183,6 +195,19 @@ class CAppTester(AppBase.CAppBase):
             if self.get_pin(pin.decode("utf-8"))[1] == True:
                 self.publish_pin_state(pin.decode("utf-8"))
 
+        # set autopublish pin command
+        if self.topic_cmnd_setautopublishpin_msg in topic:
+            pin = (topic.replace(self.topic_cmnd_setautopublishpin_msg + b"/",b"")).decode("utf-8")
+            if pin in self.pin_map:
+                self.pin_map[pin]['Publish'] = payload
+
+        # get autopublish pin state command found
+        if self.topic_cmnd_getautopublishpin_msg in topic:
+            pin = (topic.replace(self.topic_cmnd_getautopublishpin_msg + b"/",b"")).decode("utf-8")
+            if pin in self.pin_map:
+                appmode = self.pin_map[pin]['Publish']
+                self.mqtt_client.publish(self.topic_autopublishpin_msg + bytes("/" + pin,'utf-8'),appmode)
+
     def begin(self):
         """
         start function for the tester application
@@ -191,10 +216,16 @@ class CAppTester(AppBase.CAppBase):
         self.set_tester_devicename_id()
         # subscribe to command message for set pinmode
         self.mqtt_subscribe_to_msg(self.topic_cmnd_setpinmode_msg + b"/#")
+        # subscribe to command message for get pinmode
+        self.mqtt_subscribe_to_msg(self.topic_cmnd_getpinmode_msg + b"/#")
         # subscribe to command message for set pin state
         self.mqtt_subscribe_to_msg(self.topic_cmnd_setpin_msg + b"/#")
         # subscribe to command message for get pin state
         self.mqtt_subscribe_to_msg(self.topic_cmnd_getpin_msg + b"/#")
+        # subscribe to command message for set autopublish pin state
+        self.mqtt_subscribe_to_msg(self.topic_cmnd_setautopublishpin_msg + b"/#")
+        # subscribe to command message for get autopublish pin state
+        self.mqtt_subscribe_to_msg(self.topic_cmnd_getautopublishpin_msg + b"/#")
         # overwrite callback of base class
         self.set_subscribe_cb(self.mqtt_tester_subscribe_cb)
 
