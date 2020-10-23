@@ -120,7 +120,7 @@ def test_begin(mock_machine,mock_network,mock_umqtt):
     """
     ab = AppSwitch.CAppSwitch(app_device)
     ab.begin()
-        # checking subscribes
+    # checking subscribes
     subscribe_calls = [
                         call(b'contX/switch/1/cmnd/version'),
                         call(b'contX/switch/1/cmnd/repoversion'),
