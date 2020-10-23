@@ -123,7 +123,7 @@ def test_publish_in_pins(mock_machine,mock_umqtt,mock_network):
     ab.publish_in_pins()
     mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/statepin/GPIO26",'0')
     ab.mqtt_tester_subscribe_cb(b"contX/tester/1/cmnd/getautopublishpin/GPIO26",b'')
-    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/autopublishpin/GPIO26",1)
+    mock_umqtt.return_value.publish.assert_called_with(b"contX/tester/1/autopublishpin/GPIO26",'1')
 
 
 @patch("AppBase.network.WLAN")
