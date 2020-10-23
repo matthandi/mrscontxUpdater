@@ -199,14 +199,14 @@ class CAppTester(AppBase.CAppBase):
         if self.topic_cmnd_setautopublishpin_msg in topic:
             pin = (topic.replace(self.topic_cmnd_setautopublishpin_msg + b"/",b"")).decode("utf-8")
             if pin in self.pin_map:
-                self.pin_map[pin]['Publish'] = payload
+                self.pin_map[pin]['Publish'] = int(payload)
 
         # get autopublish pin state command found
         if self.topic_cmnd_getautopublishpin_msg in topic:
             pin = (topic.replace(self.topic_cmnd_getautopublishpin_msg + b"/",b"")).decode("utf-8")
             if pin in self.pin_map:
                 appmode = self.pin_map[pin]['Publish']
-                self.mqtt_client.publish(self.topic_autopublishpin_msg + bytes("/" + pin,'utf-8'),appmode)
+                self.mqtt_client.publish(self.topic_autopublishpin_msg + bytes("/" + str(pin),'utf-8'),str(appmode))
 
     def begin(self):
         """
